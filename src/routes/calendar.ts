@@ -1,5 +1,5 @@
 import { OpenAPIHono, createRoute, z, type RouteHandler } from "@hono/zod-openapi";
-import { geocodeSwedishPostcode } from "../geocoder.js";
+import { lookupPostcode } from "../postcodeDb.js";
 import { classifyZone, type Zone } from "../zoneClassifier.js";
 import { getCalendar } from "../calendarLookup.js";
 import { getZoneByPostcode, savePostcodeZone } from "../repositories/postcodeZoneRepository.js";
@@ -33,14 +33,14 @@ const CalendarResponseSchema = z.object({
 
 const ErrorSchema = z.object({
   error: z.string().openapi({ example: "not_found" }),
-  message: z.string().openapi({ example: "No location found for postcode 99999" }),
+  message: z.string().openapi({ example: "Postcode 99999 not found in the Swedish postcode database" }),
 }).openapi("Error");
 
 const getCalendarRoute = createRoute({
   method: "get",
   path: "/calendar",
   summary: "Get crop calendar for a Swedish postcode",
-  description: "Geocodes a 5-digit Swedish postcode, resolves its growing zone (1–5), and returns a month-by-month sow/plant/harvest calendar for each supported crop.",
+  description: "Resolves the growing zone for a 5-digit Swedish postcode and returns a month-by-month sow/plant/harvest calendar for each supported crop.",
   tags: ["Calendar"],
   request: {
     query: PostcodeQuery,
@@ -56,7 +56,7 @@ const getCalendarRoute = createRoute({
     },
     404: {
       content: { "application/json": { schema: ErrorSchema } },
-      description: "Postcode not found or outside Swedish growing zones",
+      description: "Postcode not found in the Swedish postcode database",
     },
     500: {
       content: { "application/json": { schema: ErrorSchema } },
@@ -75,10 +75,10 @@ const getCalendarHandler: RouteHandler<typeof getCalendarRoute> = async (c) => {
     if (cached !== null) {
       zone = cached;
     } else {
-      const location = await geocodeSwedishPostcode(postcode);
+      const location = lookupPostcode(postcode);
       if (!location) {
         return c.json(
-          { error: "not_found", message: `No location found for postcode ${postcode}` },
+          { error: "not_found", message: `Postcode ${postcode} not found in the Swedish postcode database` },
           404
         );
       }
@@ -92,7 +92,7 @@ const getCalendarHandler: RouteHandler<typeof getCalendarRoute> = async (c) => {
       }
 
       zone = resolvedZone;
-      await savePostcodeZone(postcode, location.lat, location.lng, zone);
+      await savePostcodeZone(postcode, location.lat, location.lng, zone, location.placeName, location.adminName1);
     }
 
     const crops = getCalendar(zone);

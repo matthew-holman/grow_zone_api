@@ -13,7 +13,7 @@ Growzone is a Swedish grow calendar API. A user provides a Swedish postcode and 
 - **Database**: PostgreSQL via Drizzle ORM
 - **Validation**: Zod — used at API boundaries and to validate data files at startup
 - **Testing**: Vitest
-- **External API**: Nominatim (OpenStreetMap) for postcode geocoding — no API key required; must include a descriptive `User-Agent` header per their usage policy (e.g. `growzone/1.0 (contact@example.com)`)
+- **Postcode data**: GeoNames `SE.zip` (CC BY 4.0, attribution to geonames.org required) — loaded from `src/data/postcodes/SE.zip` at startup into an in-memory Map. No external API calls at runtime.
 
 ## Architecture and Key Decisions
 
@@ -23,7 +23,7 @@ Growzone is a Swedish grow calendar API. A user provides a Swedish postcode and 
 
 **Crop calendar data lives in `src/data/crops.json`.** This file is validated against a Zod schema at application startup. If it fails validation, the process must not start. Crop data is not stored in the database at this stage. It is the authoritative source for all horticultural logic and will be reviewed externally — keep it strictly separate from application code.
 
-**Nominatim is called once per user at signup.** The resolved `lat`, `lng`, and `zone_id` are written to the user's database row at that point. There is no geocoding cache — it is not needed because geocoding happens only once per user.
+**Postcode lookup is local and synchronous.** `src/postcodeDb.ts` loads `SE.zip` at startup into a `Map<string, { lat, lng }>`. `lookupPostcode(postcode)` is a pure synchronous function — no network calls, no async. The resolved `lat`, `lng`, and `zone_id` are written to `postcode_zones` on first use and served from the DB on subsequent requests. Run `npm run db:seed-postcodes` to pre-populate all ~16,000 Swedish postcodes upfront.
 
 **No in-process caching.** Do not introduce `Map`-based TTL caches, node-cache, Redis, or any other caching layer. PostgreSQL is the only data store. If performance becomes a concern, address it at the database level.
 
@@ -52,7 +52,7 @@ src/
   index.ts            — entry point, starts the Hono server
   router.ts           — mounts domain routers, registers /openapi.json and /docs
   zoneClassifier.ts   — pure zone resolution function: (lat, lng) => Zone | null
-  geocoder.ts         — Nominatim wrapper module
+  postcodeDb.ts       — loads SE.zip at startup, exposes lookupPostcode(postcode): PostcodeLocation | null
   calendarLookup.ts   — loads crops.json at startup, validates with Zod, exposes query functions
   routes/
     calendar.ts       — /calendar route: schemas, route definition, handler
@@ -61,6 +61,10 @@ src/
     migrations/       — generated migration files
   data/
     crops.json        — crop × zone calendar data (source of truth for horticultural logic)
+    postcodes/
+      SE.zip          — GeoNames Swedish postcode dataset (CC BY 4.0, geonames.org)
+  scripts/
+    seedPostcodes.ts  — one-off script to bulk-insert all postcodes into postcode_zones
   zoneClassifier.test.ts — unit tests for the zone classifier
 ```
 

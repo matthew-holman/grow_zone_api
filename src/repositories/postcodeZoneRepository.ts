@@ -17,12 +17,16 @@ export async function savePostcodeZone(
   postcode: string,
   lat: number,
   lng: number,
-  zone: Zone
+  zone: Zone,
+  placeName: string,
+  adminName1: string | null
 ): Promise<void> {
   await db.insert(postcodeZones).values({
     postcode,
     lat: String(lat),
     lng: String(lng),
     zoneId: zone,
+    placeName,
+    adminName1,
   });
 }
