@@ -8,7 +8,8 @@ Growzone is a Swedish grow calendar API. A user provides a Swedish postcode and 
 
 - **Runtime**: Node 20
 - **Language**: TypeScript (strict mode — `noImplicitAny`, `strictNullChecks`, explicit return types on exported functions)
-- **Framework**: Hono
+- **Framework**: Hono via `OpenAPIHono` from `@hono/zod-openapi`
+- **API docs**: `@hono/zod-openapi` for OpenAPI spec generation; `@scalar/hono-api-reference` for the interactive UI at `GET /docs`
 - **Database**: PostgreSQL via Drizzle ORM
 - **Validation**: Zod — used at API boundaries and to validate data files at startup
 - **Testing**: Vitest
@@ -49,10 +50,12 @@ The `users` table stores:
 ```
 src/
   index.ts            — entry point, starts the Hono server
-  router.ts           — Hono route definitions
+  router.ts           — mounts domain routers, registers /openapi.json and /docs
   zoneClassifier.ts   — pure zone resolution function: (lat, lng) => Zone | null
   geocoder.ts         — Nominatim wrapper module
   calendarLookup.ts   — loads crops.json at startup, validates with Zod, exposes query functions
+  routes/
+    calendar.ts       — /calendar route: schemas, route definition, handler
   db/
     schema.ts         — Drizzle schema definitions
     migrations/       — generated migration files
@@ -72,6 +75,28 @@ src/
 **Pure functions preferred.** Side effects (database writes, HTTP calls) are pushed to the edges. Core logic — zone classification, calendar lookup — must be pure and independently testable.
 
 **Crop data is separate.** `src/data/crops.json` is data, not code. Do not import application utilities into it, do not inline its contents into application modules, and do not move it into the database prematurely.
+
+## OpenAPI / @hono/zod-openapi Conventions
+
+The app uses `OpenAPIHono` throughout — never plain `Hono`. All routes are defined with `createRoute()` and registered with `app.openapi()`.
+
+**Route files live in `src/routes/`, one file per domain.** Each file creates its own `OpenAPIHono` instance, defines route schemas and handlers locally, and exports the instance. `router.ts` mounts them with `app.route("/", domainRouter)`.
+
+**Always pass an explicit status code to `c.json()`.** Hono's `c.json()` defaults the status type to the full `ContentfulStatusCode` union when no status argument is given. `RouteHandler<R>` expects a narrowed status (e.g. `200`). Omitting the status causes TS2322. Every `c.json()` call in an `openapi()` handler must include an explicit status:
+```typescript
+return c.json({ postcode, zone, crops }, 200);  // ✓
+return c.json({ postcode, zone, crops });        // ✗ — TS2322
+```
+
+**Use `RouteHandler<typeof route>` to type standalone handler functions.** When a handler is defined as a separate variable rather than inline, annotate it with `RouteHandler<typeof myRoute>` imported from `@hono/zod-openapi`. This is preferred over inline anonymous functions for readability.
+
+**`z` must be imported from `@hono/zod-openapi`, not `zod`.** The package re-exports Zod augmented with `.openapi()`. Importing from `zod` directly will miss this augmentation.
+
+**Use `Scalar` (not the deprecated `apiReference` alias) and mount it with `app.use()`.** `Scalar` returns a `MiddlewareHandler`, not a route handler, so `app.get()` will produce a type error. The correct pattern:
+```typescript
+import { Scalar } from "@scalar/hono-api-reference";
+app.use("/docs", Scalar({ url: "/openapi.json" }));
+```
 
 ## Current Phase
 
