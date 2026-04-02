@@ -1,8 +1,23 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { Scalar } from "@scalar/hono-api-reference";
 import calendar from "./routes/calendar.js";
+import { cors } from 'hono/cors'
 
 const app = new OpenAPIHono();
+
+// CORS should be called before the route
+app.use('/*', cors())
+app.use(
+    '/api2/*',
+    cors({
+      origin: 'http://localhost:3000',
+      allowHeaders: ['X-Custom-Header', 'Upgrade-Insecure-Requests'],
+      allowMethods: ['POST', 'GET', 'OPTIONS'],
+      exposeHeaders: ['Content-Length', 'X-Kuma-Revision'],
+      maxAge: 600,
+      credentials: true,
+    })
+)
 
 app.route("/", calendar);
 
