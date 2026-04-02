@@ -7,5 +7,6 @@ export const postcodeZones = pgTable("postcode_zones", {
   zoneId: smallint("zone_id").notNull(),
   placeName: text("place_name").notNull(),
   adminName1: text("admin_name1"),
+  elevationM: smallint("elevation_m"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

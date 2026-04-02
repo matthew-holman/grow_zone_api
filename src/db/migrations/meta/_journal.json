@@ -15,6 +15,13 @@
       "when": 1775053574000,
       "tag": "0001_natural_excalibur",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1775130285633,
+      "tag": "0002_busy_firedrake",
+      "breakpoints": true
     }
   ]
 }

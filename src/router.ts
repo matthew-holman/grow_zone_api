@@ -6,9 +6,8 @@ import { cors } from 'hono/cors'
 const app = new OpenAPIHono();
 
 // CORS should be called before the route
-app.use('/*', cors())
 app.use(
-    '/api2/*',
+    '/*',
     cors({
       origin: 'http://localhost:3000',
       allowHeaders: ['X-Custom-Header', 'Upgrade-Insecure-Requests'],

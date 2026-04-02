@@ -138,3 +138,6 @@ out
 # Claude Code local files
 CLAUDE.local.md
 settings.local.json
+
+# Mac OS
+.DS_Store

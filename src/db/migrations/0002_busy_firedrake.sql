@@ -1,0 +1,1 @@
+ALTER TABLE "postcode_zones" ADD COLUMN "elevation_m" smallint;
