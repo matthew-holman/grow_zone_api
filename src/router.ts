@@ -1,7 +1,7 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { Scalar } from "@scalar/hono-api-reference";
-import calendar from "./routes/calendar.js";
 import { cors } from 'hono/cors'
+import calendar from "./routes/calendar.js";
 
 const app = new OpenAPIHono();
 

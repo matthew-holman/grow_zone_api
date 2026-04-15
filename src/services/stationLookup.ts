@@ -45,7 +45,7 @@ export class InsufficientStationsError extends Error {
 // pg returns PostgreSQL array columns as the raw wire string "{v1,v2,...}" in
 // raw sql queries. Handle both that format and a pre-parsed string[].
 function parsePgNumericArray(val: string | string[]): number[] {
-  if (Array.isArray(val)) return val.map(parseFloat);
+  if (Array.isArray(val)) {return val.map(parseFloat);}
   // Strip surrounding braces and split on commas
   return val.slice(1, -1).split(",").map(parseFloat);
 }

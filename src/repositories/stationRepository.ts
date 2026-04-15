@@ -1,5 +1,4 @@
-import { eq } from "drizzle-orm";
-import { sql } from "drizzle-orm";
+import { eq, sql  } from "drizzle-orm";
 import { db, postcodeZones } from "../db/index.js";
 
 export interface PostcodeLocation {
@@ -42,7 +41,7 @@ export async function getPostcodeLocation(
     .where(eq(postcodeZones.postcode, postcode))
     .limit(1);
 
-  if (rows.length === 0) return null;
+  if (rows.length === 0) {return null;}
 
   const row = rows[0];
   return {

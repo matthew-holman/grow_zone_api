@@ -1,4 +1,5 @@
-import {eq, InferSelectModel} from "drizzle-orm";
+import type { InferSelectModel} from "drizzle-orm";
+import {eq} from "drizzle-orm";
 import {db, postcodeZones} from "../db/index.js";
 import type {Zone} from "../zoneClassifier.js"
 
@@ -11,7 +12,7 @@ export async function getZoneByPostcode(postcode: string): Promise<Zone | null> 
     .where(eq(postcodeZones.postcode, postcode))
     .limit(1);
 
-  if (rows.length === 0) return null;
+  if (rows.length === 0) {return null;}
   return rows[0].zoneId as Zone;
 }
 

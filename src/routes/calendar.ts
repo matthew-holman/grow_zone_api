@@ -1,8 +1,10 @@
-import { OpenAPIHono, createRoute, z, type RouteHandler } from "@hono/zod-openapi";
-import { lookupPostcode } from "../repositories/postcodeDb.js";
-import { classifyZone, type Zone } from "../zoneClassifier.js";
+import { OpenAPIHono, createRoute, z  } from "@hono/zod-openapi";
+import type {RouteHandler} from "@hono/zod-openapi";
 import { getCalendar } from "../calendarLookup.js";
+import { lookupPostcode } from "../repositories/postcodeDb.js";
 import { getZoneByPostcode, savePostcodeZone } from "../repositories/postcodeZoneRepository.js";
+import { classifyZone  } from "../zoneClassifier.js";
+import type {Zone} from "../zoneClassifier.js";
 
 const PostcodeQuery = z.object({
   postcode: z

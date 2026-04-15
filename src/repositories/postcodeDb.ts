@@ -40,10 +40,10 @@ function loadPostcodeDb(): Map<string, PostcodeLocation> {
 
   for (const line of lines) {
     const trimmed = line.trim();
-    if (!trimmed) continue;
+    if (!trimmed) {continue;}
 
     const cols = trimmed.split("\t");
-    if (cols.length < 11) continue;
+    if (cols.length < 11) {continue;}
 
     // GeoNames SE.txt columns:
     // 0: country_code  1: postal_code  2: place_name
@@ -57,7 +57,7 @@ function loadPostcodeDb(): Map<string, PostcodeLocation> {
     const adminName1 = cols[3].trim() || null;
 
     const parsed = postcodeRowSchema.safeParse({ postcode: rawPostcode, lat, lng, placeName, adminName1 });
-    if (!parsed.success) continue;
+    if (!parsed.success) {continue;}
 
     db.set(parsed.data.postcode, {
       lat: parsed.data.lat,

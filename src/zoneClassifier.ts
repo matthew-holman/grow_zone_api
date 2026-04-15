@@ -25,7 +25,7 @@ export function classifyZone(lat: number, lng: number): Zone | null {
   }
 
   for (const [zone, upperBound] of ZONE_BOUNDARIES) {
-    if (lat < upperBound) return zone;
+    if (lat < upperBound) {return zone;}
   }
 
   return 5;

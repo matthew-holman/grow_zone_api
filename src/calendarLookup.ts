@@ -1,5 +1,5 @@
-import { createRequire } from "module";
 import { z } from "zod";
+import { createRequire } from "module";
 import type { Zone } from "./zoneClassifier.js";
 
 // zod is a declared dependency — install it below if not present
