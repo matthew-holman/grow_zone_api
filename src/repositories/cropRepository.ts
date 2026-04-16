@@ -1,33 +1,8 @@
 import { eq, asc } from 'drizzle-orm'
 import { db } from '../db/index.js'
 import { crops, cropMethods } from '../db/schema.js'
-import type { CropBody, CropUpdate, MethodBody, MethodUpdate } from '../validators/cropValidators.js'
-
-export interface CropWithMethods {
-  id:                   string
-  nameSv:               string
-  nameEn:               string
-  lifecycle:            string
-  frostTolerance:       string
-  minNightTempC:        number | null
-  daylengthRequirement: string
-  methods: {
-    id:                        string
-    cropId:                    string
-    labelSv:                   string
-    labelEn:                   string
-    germinationMinSoilTempC:   number | null
-    germinationOptSoilTempC:   number | null
-    daysToGerminationMin:      number | null
-    daysToGerminationMax:      number | null
-    daysToMaturityMin:         number | null
-    daysToMaturityMax:         number | null
-    transplantTolerance:       string
-    gddRequired:               number | null
-    plantBeforeFirstFrostDays: number | null
-    sortOrder:                 number
-  }[]
-}
+import type { CropWithMethods } from '../services/calendarEngine.js'
+import type { InsertCrop, UpdateCrop, InsertCropMethod, UpdateCropMethod } from '../schemas/crops.js'
 
 // Used by the calendar pipeline — returns only the fields the engine needs,
 // with explicit mapping and a typed return signature.
@@ -90,7 +65,7 @@ export async function getCrop(id: string) {
   return { ...crop, methods }
 }
 
-export async function createCrop(data: CropBody) {
+export async function createCrop(data: InsertCrop) {
   const [created] = await db.insert(crops).values({
     id:                   data.id,
     nameSv:               data.nameSv,
@@ -105,7 +80,7 @@ export async function createCrop(data: CropBody) {
   return created
 }
 
-export async function updateCrop(id: string, data: CropUpdate) {
+export async function updateCrop(id: string, data: UpdateCrop) {
   const rows = await db
     .update(crops)
     .set({
@@ -141,7 +116,7 @@ export async function getMethod(id: string) {
   return rows.at(0) ?? null
 }
 
-export async function createMethod(data: MethodBody) {
+export async function createMethod(data: InsertCropMethod) {
   const [created] = await db.insert(cropMethods).values({
     id:                        data.id,
     cropId:                    data.cropId,
@@ -161,7 +136,7 @@ export async function createMethod(data: MethodBody) {
   return created
 }
 
-export async function updateMethod(id: string, data: MethodUpdate) {
+export async function updateMethod(id: string, data: UpdateCropMethod) {
   const rows = await db
     .update(cropMethods)
     .set({

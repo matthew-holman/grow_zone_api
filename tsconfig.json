@@ -9,8 +9,9 @@
     "outDir": "dist",
     "rootDir": "src",
     "esModuleInterop": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": ["node"]
   },
-  "include": ["src", "drizzle.config.ts"],
+  "include": ["src"],
   "exclude": ["node_modules", "dist"]
 }

@@ -6,7 +6,8 @@ function unwrap<T>(val: T | null, label = 'value'): T {
   if (val === null) {throw new Error(`Expected ${label} to be non-null`)}
   return val
 }
-import type { ClimateProfile, MethodCalendar } from '../types/climate.js'
+import type { ClimateProfile } from '../domain/climate.js'
+import type { MethodCalendar } from '../schemas/calendar.js'
 import {
   generateCalendar,
   dayOfYearToCalendarDate,

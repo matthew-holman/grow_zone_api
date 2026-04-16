@@ -76,23 +76,41 @@ src/
   router.ts           — mounts domain routers, registers /openapi.json and /docs
   routes/
     calendar.ts       — /calendar route: schemas, route definition, handler
+    adminCrops.ts     — /admin/crops CRUD routes
   services/
     stationLookup.ts  — resolves postcode → 3 nearest SMHI stations
     climateResolver.ts — derives ClimateProfile from stations + elevation
     calendarEngine.ts — generates growing calendar from ClimateProfile + crops
   repositories/
-    cropRepository.ts      — fetches all crops + methods from the database
+    cropRepository.ts      — all crop + method DB operations
     stationRepository.ts   — weather_stations table queries
   db/
-    schema.ts         — Drizzle schema definitions
+    schema.ts         — Drizzle table definitions (source of truth for DB shape)
+    types.ts          — Drizzle-inferred row types (SelectCrop, InsertCrop, etc.)
     migrations/       — generated migration files
-  types/
+  domain/
     climate.ts        — ClimateProfile, CalendarWindow, MethodCalendar, CropCalendar
+    index.ts          — barrel export of all domain types
+  validators/
+    crops.ts          — Zod schemas derived from Drizzle via drizzle-zod
+    index.ts          — barrel export
   data/
     postcodes/        — postcode input files (used by seed scripts only)
 scripts/
   seed-stations.ts    — one-off script to bulk-insert SMHI weather stations
 ```
+
+## Type system rules
+
+**`src/db/schema.ts`** is the single source of truth for database table shapes. Never hand-write interfaces that mirror a DB table.
+
+**`src/db/types.ts`** re-exports Drizzle-inferred types only (`type SelectCrop = typeof crops.$inferSelect`). No hand-written interfaces.
+
+**`src/domain/`** holds types that exist purely in business logic with no direct DB row — `ClimateProfile`, `CalendarWindow`, `MethodCalendar`, `CropCalendar`, etc. Declared once, imported by both services and routes.
+
+**`src/validators/`** holds all Zod schemas. Crop schemas are derived via `drizzle-zod` (`createInsertSchema`, `createSelectSchema`) with field-level overrides for enums and range constraints. Never hand-write crop schemas.
+
+**`src/routes/`** files contain zero type or interface definitions. All types are imported from `domain/` or `validators/`.
 
 ## Conventions
 
@@ -181,7 +199,7 @@ PUT    /admin/crops/:id/methods/:mid
 DELETE /admin/crops/:id/methods/:mid
 ```
 
-Validation schemas live in `src/validators/cropValidators.ts`.
+Validation schemas live in `src/validators/crops.ts`.
 Database operations live in `src/repositories/cropRepository.ts`.
 Route handlers live in `src/routes/adminCrops.ts`.
 

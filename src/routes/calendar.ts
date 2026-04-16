@@ -1,76 +1,14 @@
-import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi'
+import { OpenAPIHono, createRoute } from '@hono/zod-openapi'
 import type { RouteHandler } from '@hono/zod-openapi'
 import { getAllCropsWithMethods } from '../repositories/cropRepository.js'
 import { generateCalendar } from '../services/calendarEngine.js'
 import { resolveClimateProfile } from '../services/climateResolver.js'
 import { findNearestStations, PostcodeNotFoundError, InsufficientStationsError } from '../services/stationLookup.js'
-
-// ---------------------------------------------------------------------------
-// Schemas
-// ---------------------------------------------------------------------------
-
-const PostcodeQuery = z.object({
-  postcode: z
-    .string({ required_error: 'postcode query parameter is required' })
-    .min(4, 'postcode too short')
-    .max(6, 'postcode too long')
-    .regex(/^\d+$/, 'postcode must contain only digits')
-    .openapi({ example: '11346' }),
-})
-
-const CalendarWindowSchema = z.object({
-  startMonth: z.number().int().min(1).max(12),
-  startDay:   z.number().int().min(1).max(31),
-  endMonth:   z.number().int().min(1).max(12),
-  endDay:     z.number().int().min(1).max(31),
-}).openapi('CalendarWindow')
-
-const MethodCalendarSchema = z.object({
-  methodId:          z.string(),
-  methodLabelSv:     z.string(),
-  methodLabelEn:     z.string(),
-  feasibility:       z.enum(['feasible', 'marginal', 'infeasible']),
-  feasibilityReason: z.string().nullable(),
-  sowIndoors:        CalendarWindowSchema.nullable(),
-  directSow:         CalendarWindowSchema.nullable(),
-  transplant:        CalendarWindowSchema.nullable(),
-  harvest:           CalendarWindowSchema.nullable(),
-}).openapi('MethodCalendar')
-
-const CropCalendarSchema = z.object({
-  cropId:     z.string(),
-  cropNameSv: z.string(),
-  cropNameEn: z.string(),
-  lifecycle:  z.string(),
-  methods:    z.array(MethodCalendarSchema),
-}).openapi('CropCalendar')
-
-const CalendarResponseSchema = z.object({
-  postcode: z.string().openapi({ example: '11346' }),
-  location: z.object({
-    lat:        z.number().openapi({ example: 59.334 }),
-    lng:        z.number().openapi({ example: 18.063 }),
-    elevationM: z.number().int().openapi({ example: 28 }),
-  }),
-  climate: z.object({
-    lastFrostDoy:     z.number().int(),
-    lastFrostP90:     z.number().int(),
-    firstFrostDoy:    z.number().int(),
-    firstFrostP10:    z.number().int(),
-    growingDays:      z.number().int(),
-    gddAnnual:        z.number(),
-    gddP10:           z.number(),
-    gddP90:           z.number(),
-    gddCv:            z.number(),
-    monthlyMeanTemps: z.array(z.number()),
-  }),
-  crops: z.array(CropCalendarSchema),
-}).openapi('CalendarResponse')
-
-const ErrorSchema = z.object({
-  error:   z.string().openapi({ example: 'postcode_not_found' }),
-  message: z.string().openapi({ example: 'Postcode 00000 was not found in the database.' }),
-}).openapi('Error')
+import {
+  PostcodeQuery,
+  CalendarResponseSchema,
+  ErrorSchema,
+} from '../schemas/index.js'
 
 // ---------------------------------------------------------------------------
 // Route definition

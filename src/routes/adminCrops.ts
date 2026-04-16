@@ -11,11 +11,11 @@ import {
   deleteMethod,
 } from '../repositories/cropRepository.js'
 import {
-  CropBodySchema,
-  CropUpdateSchema,
-  CropMethodBodySchema,
-  CropMethodUpdateSchema,
-} from '../validators/cropValidators.js'
+  InsertCropSchema,
+  UpdateCropSchema,
+  InsertCropMethodSchema,
+  UpdateCropMethodSchema,
+} from '../schemas/crops.js'
 
 const adminCrops = new Hono()
 
@@ -46,7 +46,7 @@ adminCrops.post('/', async (c) => {
     return c.json({ error: 'invalid_body', message: 'Request body must be valid JSON.' }, 400)
   }
 
-  const parsed = CropBodySchema.safeParse(body)
+  const parsed = InsertCropSchema.safeParse(body)
   if (!parsed.success) {
     return c.json({
       error:   'validation_error',
@@ -75,7 +75,7 @@ adminCrops.put('/:id', async (c) => {
     return c.json({ error: 'invalid_body', message: 'Request body must be valid JSON.' }, 400)
   }
 
-  const parsed = CropUpdateSchema.safeParse(body)
+  const parsed = UpdateCropSchema.safeParse(body)
   if (!parsed.success) {
     return c.json({
       error:   'validation_error',
@@ -129,7 +129,7 @@ adminCrops.post('/:id/methods', async (c) => {
   }
 
   // Inject cropId from the URL — caller does not need to supply it
-  const parsed = CropMethodBodySchema.safeParse({ ...body, cropId })
+  const parsed = InsertCropMethodSchema.safeParse({ ...body, cropId })
   if (!parsed.success) {
     return c.json({
       error:   'validation_error',
@@ -171,7 +171,7 @@ adminCrops.put('/:id/methods/:mid', async (c) => {
     return c.json({ error: 'invalid_body', message: 'Request body must be valid JSON.' }, 400)
   }
 
-  const parsed = CropMethodUpdateSchema.safeParse(body)
+  const parsed = UpdateCropMethodSchema.safeParse(body)
   if (!parsed.success) {
     return c.json({
       error:   'validation_error',

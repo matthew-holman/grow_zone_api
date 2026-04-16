@@ -1,4 +1,4 @@
-import type { ClimateProfile, StationWeight } from "../types/climate.js";
+import type { ClimateProfile, StationWeight } from "../domain/climate.js";
 import type { NearestStation, PostcodeLocation } from "./stationLookup.js";
 
 // Lapse rate constants — from SLU published climate data

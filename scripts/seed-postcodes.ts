@@ -3,7 +3,6 @@ import { readFileSync } from 'fs';
 import { z } from 'zod';
 import { sql } from 'drizzle-orm';
 import { db, postcodeZones } from '../src/db/index.js';
-import { classifyZone } from '../src/zoneClassifier.js';
 
 const PostcodeRecordSchema = z.object({
   postcode: z.string().min(1),
@@ -56,13 +55,11 @@ for (let i = 0; i < records.length; i += BATCH_SIZE) {
 
   await db.insert(postcodeZones)
     .values(batch.flatMap((r) => {
-      const zone = classifyZone(r.lat, r.lng);
-      if (zone === null) return [];
       return [{
         postcode: r.postcode,
         lat: String(r.lat),
         lng: String(r.lng),
-        zoneId: zone,
+        zoneId: 2,  // this should be removed from the schema, no zones anymore
         placeName: r.placeName,
         adminName1: r.adminName1,
         elevationM: r.elevationM,

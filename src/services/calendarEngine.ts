@@ -1,10 +1,10 @@
+import type { ClimateProfile } from '../domain/climate.js'
 import type {
-  ClimateProfile,
   CalendarWindow,
   FeasibilityStatus,
   MethodCalendar,
   CropCalendar,
-} from '../types/climate.js'
+} from '../schemas/calendar.js'
 
 // ---------------------------------------------------------------------------
 // Input types — mirror the Drizzle schema for crops and crop_methods
