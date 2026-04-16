@@ -1,4 +1,11 @@
 import { describe, it, expect, beforeEach } from 'vitest'
+
+// Type-safe null unwrap for test assertions — throws with a clear message if
+// the value is null, avoiding non-null assertion operators (!) in test code.
+function unwrap<T>(val: T | null, label = 'value'): T {
+  if (val === null) {throw new Error(`Expected ${label} to be non-null`)}
+  return val
+}
 import type { ClimateProfile, MethodCalendar } from '../types/climate.js'
 import {
   generateCalendar,
@@ -256,14 +263,14 @@ describe('resolveAnnualCalendar — tomato', () => {
     })
 
     it('sow indoors starts before transplant', () => {
-      const sowMonth      = calendar.sowIndoors!.startMonth
-      const transplantMonth = calendar.transplant!.startMonth
+      const sowMonth        = unwrap(calendar.sowIndoors,  'sowIndoors').startMonth
+      const transplantMonth = unwrap(calendar.transplant, 'transplant').startMonth
       expect(sowMonth).toBeLessThan(transplantMonth)
     })
 
     it('transplant is after last frost P90 (May 23rd)', () => {
       // transplant pushed out to June due to night temp constraint
-      expect(calendar.transplant!.startMonth).toBeGreaterThanOrEqual(6)
+      expect(unwrap(calendar.transplant, 'transplant').startMonth).toBeGreaterThanOrEqual(6)
     })
 
     it('has no direct sow window', () => {
@@ -271,7 +278,7 @@ describe('resolveAnnualCalendar — tomato', () => {
     })
 
     it('harvest ends before first frost P10 (September 25th)', () => {
-      expect(calendar.harvest!.endMonth).toBeLessThanOrEqual(9)
+      expect(unwrap(calendar.harvest, 'harvest').endMonth).toBeLessThanOrEqual(9)
     })
 
     it('is feasible', () => {
@@ -304,12 +311,12 @@ describe('resolveAnnualCalendar — carrot', () => {
 
     it('direct sow is after soil reaches 7°C', () => {
       // Stockholm April mean 6.1°C → soil ~7.6°C → April viable
-      expect(calendar.directSow!.startMonth).toBeGreaterThanOrEqual(4)
+      expect(unwrap(calendar.directSow, 'directSow').startMonth).toBeGreaterThanOrEqual(4)
     })
 
     it('harvest ends before first frost P10', () => {
       expect(calendar.harvest).not.toBeNull()
-      expect(calendar.harvest!.endMonth).toBeLessThanOrEqual(10)
+      expect(unwrap(calendar.harvest, 'harvest').endMonth).toBeLessThanOrEqual(10)
     })
   })
 })
@@ -328,8 +335,8 @@ describe('resolveOverwinteredCalendar — garlic', () => {
 
     it('autumn planting is in September or October', () => {
       // Stockholm first frost ~October 9th, plant 21 days before → ~September 18th
-      expect(calendar.directSow!.startMonth).toBeGreaterThanOrEqual(9)
-      expect(calendar.directSow!.startMonth).toBeLessThanOrEqual(10)
+      expect(unwrap(calendar.directSow, 'directSow').startMonth).toBeGreaterThanOrEqual(9)
+      expect(unwrap(calendar.directSow, 'directSow').startMonth).toBeLessThanOrEqual(10)
     })
 
     it('has no indoor sow or transplant window', () => {
@@ -338,8 +345,8 @@ describe('resolveOverwinteredCalendar — garlic', () => {
     })
 
     it('harvest is in summer — June or July', () => {
-      expect(calendar.harvest!.startMonth).toBeGreaterThanOrEqual(6)
-      expect(calendar.harvest!.endMonth).toBeLessThanOrEqual(8)
+      expect(unwrap(calendar.harvest, 'harvest').startMonth).toBeGreaterThanOrEqual(6)
+      expect(unwrap(calendar.harvest, 'harvest').endMonth).toBeLessThanOrEqual(8)
     })
 
     it('is feasible', () => {
@@ -353,8 +360,8 @@ describe('resolveOverwinteredCalendar — garlic', () => {
       const stockholmCalendar = resolveOverwinteredCalendar(stockholmProfile, garlicMethod, garlicCrop)
       // Kiruna first frost September 10th vs Stockholm October 9th
       // Kiruna planting should be in August, Stockholm in September
-      expect(kirunaCalendar.directSow!.startMonth)
-        .toBeLessThan(stockholmCalendar.directSow!.startMonth)
+      expect(unwrap(kirunaCalendar.directSow,  'kirunaCalendar.directSow').startMonth)
+        .toBeLessThan(unwrap(stockholmCalendar.directSow, 'stockholmCalendar.directSow').startMonth)
     })
   })
 })

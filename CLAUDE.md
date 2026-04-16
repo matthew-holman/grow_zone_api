@@ -196,7 +196,7 @@ included in the OpenAPI spec.
 The following are explicitly not part of the current phase. Do not implement or scaffold them unless directly instructed:
 
 - User authentication or session management
-- Zone modifiers (greenhouse, elevation, balcony, soil type)
+- Climate modifiers (greenhouse, elevation, balcony, soil type)
 - Email or push reminders
 - More than 5 crops
 - Variety-level recommendations

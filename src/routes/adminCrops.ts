@@ -41,7 +41,7 @@ adminCrops.get('/:id', async (c) => {
 // POST /admin/crops
 // Creates a new crop. Returns 409 if id already exists.
 adminCrops.post('/', async (c) => {
-  const body = await c.req.json().catch(() => null)
+  const body: unknown = await c.req.json().catch(() => null)
   if (!body) {
     return c.json({ error: 'invalid_body', message: 'Request body must be valid JSON.' }, 400)
   }
@@ -70,7 +70,7 @@ adminCrops.post('/', async (c) => {
 // PUT /admin/crops/:id
 // Updates a crop's top-level fields. Returns 404 if not found.
 adminCrops.put('/:id', async (c) => {
-  const body = await c.req.json().catch(() => null)
+  const body: unknown = await c.req.json().catch(() => null)
   if (!body) {
     return c.json({ error: 'invalid_body', message: 'Request body must be valid JSON.' }, 400)
   }
@@ -123,7 +123,7 @@ adminCrops.post('/:id/methods', async (c) => {
     return c.json({ error: 'not_found', message: 'Crop not found.' }, 404)
   }
 
-  const body = await c.req.json().catch(() => null)
+  const body: unknown = await c.req.json().catch(() => null)
   if (!body) {
     return c.json({ error: 'invalid_body', message: 'Request body must be valid JSON.' }, 400)
   }
@@ -166,7 +166,7 @@ adminCrops.put('/:id/methods/:mid', async (c) => {
     return c.json({ error: 'not_found', message: 'Method not found.' }, 404)
   }
 
-  const body = await c.req.json().catch(() => null)
+  const body: unknown = await c.req.json().catch(() => null)
   if (!body) {
     return c.json({ error: 'invalid_body', message: 'Request body must be valid JSON.' }, 400)
   }

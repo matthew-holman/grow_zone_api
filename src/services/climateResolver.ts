@@ -58,6 +58,12 @@ export function resolveClimateProfile(
   const stationWeights = computeWeights(location, stations);
   const weights = stationWeights.map(sw => sw.weight);
 
+  // Throw if a required station field is null — indicates bad seed data.
+  const req = (value: number | null | undefined, field: string): number => {
+    if (value == null) {throw new Error(`Station is missing required field: ${field}`);}
+    return value;
+  };
+
   const resolve = (
     getValue: (s: NearestStation) => number,
     ratePerHundredM: number
@@ -78,10 +84,10 @@ export function resolveClimateProfile(
   //
   // Using FROST_DAYS_PER_100M (positive) for lastFrost would move it earlier — wrong.
   // Using -FROST_DAYS_PER_100M for firstFrost would move it later — wrong.
-  const lastFrostDoy  = Math.round(resolve(s => s.lastFrostDoy!,  -FROST_DAYS_PER_100M));
-  const lastFrostP90  = Math.round(resolve(s => s.lastFrostP90!,  -FROST_DAYS_PER_100M));
-  const firstFrostDoy = Math.round(resolve(s => s.firstFrostDoy!,  FROST_DAYS_PER_100M));
-  const firstFrostP10 = Math.round(resolve(s => s.firstFrostP10!,  FROST_DAYS_PER_100M));
+  const lastFrostDoy  = Math.round(resolve(s => req(s.lastFrostDoy,  'lastFrostDoy'),  -FROST_DAYS_PER_100M));
+  const lastFrostP90  = Math.round(resolve(s => req(s.lastFrostP90,  'lastFrostP90'),  -FROST_DAYS_PER_100M));
+  const firstFrostDoy = Math.round(resolve(s => req(s.firstFrostDoy, 'firstFrostDoy'),  FROST_DAYS_PER_100M));
+  const firstFrostP10 = Math.round(resolve(s => req(s.firstFrostP10, 'firstFrostP10'),  FROST_DAYS_PER_100M));
 
   return {
     postcode:         location.postcode,
@@ -90,11 +96,11 @@ export function resolveClimateProfile(
     firstFrostDoy,
     firstFrostP10,
     growingDays:      firstFrostDoy - lastFrostDoy,
-    gddAnnual:        round1dp(resolve(s => s.gddAnnual!, GDD_PER_100M_ELEVATION)),
-    gddP10:           round1dp(resolve(s => s.gddP10!,    GDD_PER_100M_ELEVATION)),
-    gddP90:           round1dp(resolve(s => s.gddP90!,    GDD_PER_100M_ELEVATION)),
+    gddAnnual:        round1dp(resolve(s => req(s.gddAnnual, 'gddAnnual'), GDD_PER_100M_ELEVATION)),
+    gddP10:           round1dp(resolve(s => req(s.gddP10,    'gddP10'),    GDD_PER_100M_ELEVATION)),
+    gddP90:           round1dp(resolve(s => req(s.gddP90,    'gddP90'),    GDD_PER_100M_ELEVATION)),
     gddCv:            round2dp(weightedAverage(
-                        stationWeights.map(sw => sw.station.gddCv!),
+                        stationWeights.map(sw => req(sw.station.gddCv, 'gddCv')),
                         weights
                       )),
     monthlyMeanTemps: resolveMonthlyTemps(stationWeights),

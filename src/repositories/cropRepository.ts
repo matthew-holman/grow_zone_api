@@ -62,7 +62,7 @@ export async function getAllCropsWithMethods(): Promise<CropWithMethods[]> {
                               transplantTolerance:       m.transplantTolerance,
                               gddRequired:               m.gddRequired,
                               plantBeforeFirstFrostDays: m.plantBeforeFirstFrostDays,
-                              sortOrder:                 m.sortOrder ?? 0,
+                              sortOrder:                 m.sortOrder,
                             })),
   }))
 }
@@ -79,7 +79,8 @@ export async function listCrops() {
 }
 
 export async function getCrop(id: string) {
-  const [crop] = await db.select().from(crops).where(eq(crops.id, id))
+  const rows = await db.select().from(crops).where(eq(crops.id, id))
+  const crop = rows.at(0)
   if (!crop) {return null}
   const methods = await db
     .select()
@@ -105,7 +106,7 @@ export async function createCrop(data: CropBody) {
 }
 
 export async function updateCrop(id: string, data: CropUpdate) {
-  const [updated] = await db
+  const rows = await db
     .update(crops)
     .set({
       nameSv:               data.nameSv,
@@ -119,25 +120,25 @@ export async function updateCrop(id: string, data: CropUpdate) {
     })
     .where(eq(crops.id, id))
     .returning()
-  return updated ?? null
+  return rows.at(0) ?? null
 }
 
 export async function deleteCrop(id: string) {
-  const [deleted] = await db
+  const rows = await db
     .delete(crops)
     .where(eq(crops.id, id))
     .returning()
-  return deleted ?? null
+  return rows.at(0) ?? null
 }
 
 // ── Crop methods ───────────────────────────────────────────────────────────
 
 export async function getMethod(id: string) {
-  const [method] = await db
+  const rows = await db
     .select()
     .from(cropMethods)
     .where(eq(cropMethods.id, id))
-  return method ?? null
+  return rows.at(0) ?? null
 }
 
 export async function createMethod(data: MethodBody) {
@@ -161,7 +162,7 @@ export async function createMethod(data: MethodBody) {
 }
 
 export async function updateMethod(id: string, data: MethodUpdate) {
-  const [updated] = await db
+  const rows = await db
     .update(cropMethods)
     .set({
       labelSv:                   data.labelSv,
@@ -179,13 +180,13 @@ export async function updateMethod(id: string, data: MethodUpdate) {
     })
     .where(eq(cropMethods.id, id))
     .returning()
-  return updated ?? null
+  return rows.at(0) ?? null
 }
 
 export async function deleteMethod(id: string) {
-  const [deleted] = await db
+  const rows = await db
     .delete(cropMethods)
     .where(eq(cropMethods.id, id))
     .returning()
-  return deleted ?? null
+  return rows.at(0) ?? null
 }

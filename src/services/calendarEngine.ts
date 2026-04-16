@@ -237,7 +237,7 @@ export function resolveAnnualCalendar(
 export function resolveOverwinteredCalendar(
   profile: ClimateProfile,
   method: CropMethod,
-  crop: CropRecord,
+  _crop: CropRecord,
 ): MethodCalendar {
   // Plant in autumn before first frost
   const plantDoy = profile.firstFrostDoy - (method.plantBeforeFirstFrostDays ?? 21)
