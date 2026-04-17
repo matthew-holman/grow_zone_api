@@ -68,7 +68,25 @@ export const DeletedSchema = z.object({
 
 // ── Inferred types ─────────────────────────────────────────────────────────
 
+export type SelectCrop       = z.infer<typeof SelectCropSchema>
+export type SelectCropMethod = z.infer<typeof SelectCropMethodSchema>
+
 export type InsertCrop       = z.infer<typeof InsertCropSchema>
 export type UpdateCrop       = z.infer<typeof UpdateCropSchema>
 export type InsertCropMethod = z.infer<typeof InsertCropMethodSchema>
 export type UpdateCropMethod = z.infer<typeof UpdateCropMethodSchema>
+
+// ── Calendar input types ──────────────────────────────────────────────────────
+// Narrowed to the fields getAllCropsWithMethods() passes to the calendar engine.
+
+export const CropCalendarSchema = SelectCropSchema.omit({
+  createdAt: true,
+  notesSv:   true,
+  notesEn:   true,
+})
+export type CropCalendarRecord = z.infer<typeof CropCalendarSchema>
+
+export const CropMethodCalendarSchema = SelectCropMethodSchema.omit({ createdAt: true })
+export type CropMethodCalendarRecord = z.infer<typeof CropMethodCalendarSchema>
+
+export type CropWithMethods = CropCalendarRecord & { methods: CropMethodCalendarRecord[] }

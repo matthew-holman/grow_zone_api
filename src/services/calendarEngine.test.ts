@@ -17,7 +17,7 @@ import {
   resolveAnnualCalendar,
   resolveOverwinteredCalendar,
 } from './calendarEngine.js'
-import type { CropRecord, CropMethod, CropWithMethods } from './calendarEngine.js'
+import type { CropCalendarRecord, CropMethodCalendarRecord, CropWithMethods } from '../schemas/crops.js'
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -89,7 +89,7 @@ const kirunaProfile: ClimateProfile = {
   monthlyMeanTemps: [-12.0, -9.7, -6.2, -1.3, 4.9, 10.8, 14.0, 11.6, 7.1, -0.3, -5.8, -8.8],
 }
 
-const tomatoMethod: CropMethod = {
+const tomatoMethod: CropMethodCalendarRecord = {
   id:                        'tomato-from-seed',
   cropId:                    'tomato',
   labelSv:                   'Från frö',
@@ -106,7 +106,7 @@ const tomatoMethod: CropMethod = {
   sortOrder:                 0,
 }
 
-const tomatoCrop: CropRecord = {
+const tomatoCrop: CropCalendarRecord = {
   id:                   'tomato',
   nameSv:               'Tomat',
   nameEn:               'Tomato',
@@ -116,7 +116,7 @@ const tomatoCrop: CropRecord = {
   daylengthRequirement: 'neutral',
 }
 
-const carrotMethod: CropMethod = {
+const carrotMethod: CropMethodCalendarRecord = {
   id:                        'carrot-direct',
   cropId:                    'carrot',
   labelSv:                   'Direktsådd',
@@ -133,7 +133,7 @@ const carrotMethod: CropMethod = {
   sortOrder:                 0,
 }
 
-const carrotCrop: CropRecord = {
+const carrotCrop: CropCalendarRecord = {
   id:                   'carrot',
   nameSv:               'Morot',
   nameEn:               'Carrot',
@@ -143,7 +143,7 @@ const carrotCrop: CropRecord = {
   daylengthRequirement: 'neutral',
 }
 
-const garlicMethod: CropMethod = {
+const garlicMethod: CropMethodCalendarRecord = {
   id:                        'garlic-overwintered',
   cropId:                    'garlic',
   labelSv:                   'Höstplantering',
@@ -160,7 +160,7 @@ const garlicMethod: CropMethod = {
   sortOrder:                 0,
 }
 
-const garlicCrop: CropRecord = {
+const garlicCrop: CropCalendarRecord = {
   id:                   'garlic',
   nameSv:               'Vitlök',
   nameEn:               'Garlic',
@@ -411,8 +411,8 @@ describe('generateCalendar', () => {
   })
 
   it('sorts methods by sortOrder', () => {
-    const onionFromSeed: CropMethod = { ...tomatoMethod, id: 'onion-from-seed', cropId: 'onion', sortOrder: 0 }
-    const onionFromSets: CropMethod = { ...tomatoMethod, id: 'onion-from-sets', cropId: 'onion', sortOrder: 1 }
+    const onionFromSeed: CropMethodCalendarRecord = { ...tomatoMethod, id: 'onion-from-seed', cropId: 'onion', sortOrder: 0 }
+    const onionFromSets: CropMethodCalendarRecord = { ...tomatoMethod, id: 'onion-from-sets', cropId: 'onion', sortOrder: 1 }
     const crops: CropWithMethods[] = [{
       id:                   'onion',
       nameSv:               'Lök',

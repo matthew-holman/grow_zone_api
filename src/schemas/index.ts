@@ -11,10 +11,15 @@ export {
 } from './crops.js'
 
 export type {
+  SelectCrop,
+  SelectCropMethod,
   InsertCrop,
   UpdateCrop,
   InsertCropMethod,
   UpdateCropMethod,
+  CropCalendarRecord,
+  CropMethodCalendarRecord,
+  CropWithMethods,
 } from './crops.js'
 
 export { ErrorSchema, ValidationErrorSchema } from './common.js'

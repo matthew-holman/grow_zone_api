@@ -5,39 +5,11 @@ import type {
   MethodCalendar,
   CropCalendar,
 } from '../schemas/calendar.js'
-
-// ---------------------------------------------------------------------------
-// Input types — mirror the Drizzle schema for crops and crop_methods
-// ---------------------------------------------------------------------------
-
-export interface CropRecord {
-  id:                   string
-  nameSv:               string
-  nameEn:               string
-  lifecycle:            string
-  frostTolerance:       string
-  minNightTempC:        number | null
-  daylengthRequirement: string
-}
-
-export interface CropMethod {
-  id:                        string
-  cropId:                    string
-  labelSv:                   string
-  labelEn:                   string
-  germinationMinSoilTempC:   number | null
-  germinationOptSoilTempC:   number | null
-  daysToGerminationMin:      number | null
-  daysToGerminationMax:      number | null
-  daysToMaturityMin:         number | null
-  daysToMaturityMax:         number | null
-  transplantTolerance:       string
-  gddRequired:               number | null
-  plantBeforeFirstFrostDays: number | null
-  sortOrder:                 number
-}
-
-export type CropWithMethods = CropRecord & { methods: CropMethod[] }
+import type {
+  CropCalendarRecord,
+  CropMethodCalendarRecord,
+  CropWithMethods,
+} from '../schemas/crops.js'
 
 // ---------------------------------------------------------------------------
 // Public API
@@ -95,8 +67,8 @@ export function firstMonthAboveNightTemp(
 
 export function assessFeasibility(
   profile: ClimateProfile,
-  method: CropMethod,
-  crop: CropRecord,
+  method: CropMethodCalendarRecord,
+  crop: CropCalendarRecord,
 ): { status: FeasibilityStatus; reason: string | null } {
   // 1. GDD check
   if (method.gddRequired !== null) {
@@ -155,8 +127,8 @@ export function assessFeasibility(
 
 export function resolveAnnualCalendar(
   profile: ClimateProfile,
-  method: CropMethod,
-  crop: CropRecord,
+  method: CropMethodCalendarRecord,
+  crop: CropCalendarRecord,
 ): MethodCalendar {
   const feasibility = assessFeasibility(profile, method, crop)
 
@@ -236,8 +208,8 @@ export function resolveAnnualCalendar(
 
 export function resolveOverwinteredCalendar(
   profile: ClimateProfile,
-  method: CropMethod,
-  _crop: CropRecord,
+  method: CropMethodCalendarRecord,
+  _crop: CropCalendarRecord,
 ): MethodCalendar {
   // Plant in autumn before first frost
   const plantDoy = profile.firstFrostDoy - (method.plantBeforeFirstFrostDays ?? 21)
@@ -294,7 +266,7 @@ function firstDayAboveSoilTemp(
   return null
 }
 
-function computeWeeksIndoors(profile: ClimateProfile, method: CropMethod): number {
+function computeWeeksIndoors(profile: ClimateProfile, method: CropMethodCalendarRecord): number {
   const totalDaysNeeded = (method.daysToGerminationMax ?? 0) + (method.daysToMaturityMax ?? 0)
   const deficit = totalDaysNeeded - profile.growingDays
   if (deficit <= 0) {return 0}
@@ -316,7 +288,7 @@ function doyFromWindow(window: CalendarWindow): number {
   return monthToDoyStart(window.startMonth - 1)
 }
 
-function unsupportedLifecycle(method: CropMethod, crop: CropRecord): MethodCalendar {
+function unsupportedLifecycle(method: CropMethodCalendarRecord, crop: CropCalendarRecord): MethodCalendar {
   return {
     methodId:          method.id,
     methodLabelSv:     method.labelSv,
