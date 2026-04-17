@@ -19,10 +19,18 @@ const baseStation: NearestStation = {
   firstFrostDoy:    282,
   firstFrostP10:    268,
   growingDays:      155,
-  gddAnnual:        1799,
-  gddP10:           1620,
-  gddP90:           1980,
-  gddCv:            0.10,
+  gddBase5:         1799,
+  gddBase5P10:      1620,
+  gddBase5Cv:       0.10,
+  gddBase7:         1374,
+  gddBase7P10:      1238,
+  gddBase7Cv:       0.11,
+  gddBase10:        868,
+  gddBase10P10:     712,
+  gddBase10Cv:      0.14,
+  gddBase15:        258,
+  gddBase15P10:     159,
+  gddBase15Cv:      0.27,
   monthlyMeanTemps: [-1.2, -0.7, 2.1, 6.1, 11.5, 16.3, 18.3, 17.1, 13.3, 7.9, 4.0, 0.9],
   distanceKm:       10,
 };
@@ -96,7 +104,10 @@ describe("resolveClimateProfile — reference validation", () => {
     lastFrostDoy: 92,  lastFrostP90: 108,
     firstFrostDoy: 327, firstFrostP10: 312,
     growingDays: 235,
-    gddAnnual: 2105, gddP10: 1901, gddP90: 2299, gddCv: 0.07,
+    gddBase5: 2105, gddBase5P10: 1901, gddBase5Cv: 0.07,
+    gddBase7: 1607, gddBase7P10: 1428, gddBase7Cv: 0.09,
+    gddBase10: 1018, gddBase10P10: 831, gddBase10Cv: 0.12,
+    gddBase15: 301, gddBase15P10: 174, gddBase15Cv: 0.30,
     monthlyMeanTemps: [2.4, 2.1, 3.8, 7.3, 12.1, 16.3, 18.1, 18.1, 15.5, 11.2, 7.3, 4.5],
     distanceKm: 0,
   };
@@ -108,7 +119,10 @@ describe("resolveClimateProfile — reference validation", () => {
     lastFrostDoy: 127, lastFrostP90: 143,
     firstFrostDoy: 282, firstFrostP10: 268,
     growingDays: 155,
-    gddAnnual: 1799, gddP10: 1620, gddP90: 1980, gddCv: 0.10,
+    gddBase5: 1799, gddBase5P10: 1620, gddBase5Cv: 0.10,
+    gddBase7: 1374, gddBase7P10: 1238, gddBase7Cv: 0.11,
+    gddBase10: 868, gddBase10P10: 712, gddBase10Cv: 0.14,
+    gddBase15: 258, gddBase15P10: 159, gddBase15Cv: 0.27,
     monthlyMeanTemps: [-1.2, -0.7, 2.1, 6.1, 11.5, 16.3, 18.3, 17.1, 13.3, 7.9, 4.0, 0.9],
     distanceKm: 0,
   };
@@ -120,7 +134,10 @@ describe("resolveClimateProfile — reference validation", () => {
     lastFrostDoy: 152, lastFrostP90: 168,
     firstFrostDoy: 253, firstFrostP10: 241,
     growingDays: 101,
-    gddAnnual: 816, gddP10: 601, gddP90: 1003, gddCv: 0.16,
+    gddBase5: 816, gddBase5P10: 601, gddBase5Cv: 0.16,
+    gddBase7: 614, gddBase7P10: 399, gddBase7Cv: 0.19,
+    gddBase10: 311, gddBase10P10: 96, gddBase10Cv: 0.28,
+    gddBase15: 15, gddBase15P10: 0, gddBase15Cv: 0.0,
     monthlyMeanTemps: [-12.0, -9.7, -6.2, -1.3, 4.9, 10.8, 14.0, 11.6, 7.1, -0.3, -5.8, -8.8],
     distanceKm: 0,
   };
@@ -141,7 +158,7 @@ describe("resolveClimateProfile — reference validation", () => {
     expect(profile.lastFrostDoy).toBe(92);
     expect(profile.firstFrostDoy).toBe(327);
     expect(profile.growingDays).toBe(235);
-    expect(profile.gddAnnual).toBe(2105);
+    expect(profile.gddBase5).toBe(2105);
   });
 
   it("resolves profile between Falsterbo and Bromma with correct gradient", () => {
@@ -156,8 +173,8 @@ describe("resolveClimateProfile — reference validation", () => {
     ];
     const profile = resolveClimateProfile(location, stations);
     // GDD should be between Falsterbo and Bromma values
-    expect(profile.gddAnnual).toBeGreaterThan(1799);
-    expect(profile.gddAnnual).toBeLessThan(2105);
+    expect(profile.gddBase5).toBeGreaterThan(1799);
+    expect(profile.gddBase5).toBeLessThan(2105);
     // Last frost should be between the two
     expect(profile.lastFrostDoy).toBeGreaterThan(92);
     expect(profile.lastFrostDoy).toBeLessThan(127);
@@ -175,7 +192,7 @@ describe("resolveClimateProfile — reference validation", () => {
     ];
     const profile = resolveClimateProfile(location, stations);
     // Bromma GDD is 1799, elevation delta is 386m → penalty ~347 GDD
-    expect(profile.gddAnnual).toBeCloseTo(1452, 0);
+    expect(profile.gddBase5).toBeCloseTo(1452, 0);
   });
 
   it("applies elevation correction — higher postcode gets later last frost", () => {
@@ -236,7 +253,7 @@ describe("resolveClimateProfile — reference validation", () => {
     expect(profile.monthlyMeanTemps[6]).toBeGreaterThan(profile.monthlyMeanTemps[0]);
   });
 
-  it("gddCv is not elevation-corrected — it is a dimensionless variability score", () => {
+  it("gddBase5Cv is not elevation-corrected — it is a dimensionless variability score", () => {
     // CV is a ratio, not an absolute value — elevation does not change variability
     const location: PostcodeLocation = {
       postcode: "11346", lat: 59.34, lng: 18.06, elevationM: 400,
@@ -248,7 +265,7 @@ describe("resolveClimateProfile — reference validation", () => {
     ];
     const profile = resolveClimateProfile(location, stations);
     // CV should be close to Bromma's CV of 0.10 regardless of elevation
-    expect(profile.gddCv).toBeCloseTo(0.10, 1);
+    expect(profile.gddBase5Cv).toBeCloseTo(0.10, 1);
   });
 
   it("resolves a profile for Kiruna with correct northern characteristics", () => {
@@ -264,7 +281,7 @@ describe("resolveClimateProfile — reference validation", () => {
     expect(profile.lastFrostDoy).toBeGreaterThan(140);   // late spring frost
     expect(profile.firstFrostDoy).toBeLessThan(270);     // early autumn frost
     expect(profile.growingDays).toBeLessThan(130);       // short season
-    expect(profile.gddAnnual).toBeLessThan(900);         // low heat accumulation
-    expect(profile.gddCv).toBeGreaterThan(0.14);         // high variability
+    expect(profile.gddBase5).toBeLessThan(900);         // low heat accumulation
+    expect(profile.gddBase5Cv).toBeGreaterThan(0.14);         // high variability
   });
 });

@@ -1,5 +1,5 @@
 import { eq, sql  } from "drizzle-orm";
-import { db, postcodeZones } from "../db/index.js";
+import { db, postcodes } from "../db/index.js";
 
 export interface PostcodeLocation {
   postcode:   string;
@@ -19,10 +19,18 @@ export interface RawStationRow {
   first_frost_doy:    number | null;
   first_frost_p10:    number | null;
   growing_days:       number | null;
-  gdd_annual:         number | null;
-  gdd_p10:            number | null;
-  gdd_p90:            number | null;
-  gdd_cv:             number | null;
+  gdd_base5:          number | null;
+  gdd_base5_p10:      number | null;
+  gdd_base5_cv:       number | null;
+  gdd_base7:          number | null;
+  gdd_base7_p10:      number | null;
+  gdd_base7_cv:       number | null;
+  gdd_base10:         number | null;
+  gdd_base10_p10:     number | null;
+  gdd_base10_cv:      number | null;
+  gdd_base15:         number | null;
+  gdd_base15_p10:     number | null;
+  gdd_base15_cv:      number | null;
   monthly_mean_temps: string | string[];
   distance_km:        number;
 }
@@ -32,13 +40,13 @@ export async function getPostcodeLocation(
 ): Promise<PostcodeLocation | null> {
   const rows = await db
     .select({
-      postcode:   postcodeZones.postcode,
-      lat:        postcodeZones.lat,
-      lng:        postcodeZones.lng,
-      elevationM: postcodeZones.elevationM,
+      postcode:   postcodes.postcode,
+      lat:        postcodes.lat,
+      lng:        postcodes.lng,
+      elevationM: postcodes.elevationM,
     })
-    .from(postcodeZones)
-    .where(eq(postcodeZones.postcode, postcode))
+    .from(postcodes)
+    .where(eq(postcodes.postcode, postcode))
     .limit(1);
 
   if (rows.length === 0) {return null;}
@@ -68,10 +76,18 @@ export async function queryNearestStations(
       first_frost_doy,
       first_frost_p10,
       growing_days,
-      gdd_annual::float,
-      gdd_p10::float,
-      gdd_p90::float,
-      gdd_cv::float,
+      gdd_base5::float,
+      gdd_base5_p10::float,
+      gdd_base5_cv::float,
+      gdd_base7::float,
+      gdd_base7_p10::float,
+      gdd_base7_cv::float,
+      gdd_base10::float,
+      gdd_base10_p10::float,
+      gdd_base10_cv::float,
+      gdd_base15::float,
+      gdd_base15_p10::float,
+      gdd_base15_cv::float,
       monthly_mean_temps,
       (
         6371 * acos(

@@ -1,0 +1,427 @@
+{
+  "id": "085509ec-f42f-4544-9013-1b8418c72ed8",
+  "prevId": "30f1a038-89cf-4c6f-8260-18ab4feb4157",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.crop_methods": {
+      "name": "crop_methods",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "crop_id": {
+          "name": "crop_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "label_sv": {
+          "name": "label_sv",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "label_en": {
+          "name": "label_en",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "germination_min_soil_temp_c": {
+          "name": "germination_min_soil_temp_c",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "germination_opt_soil_temp_c": {
+          "name": "germination_opt_soil_temp_c",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "days_to_germination_min": {
+          "name": "days_to_germination_min",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "days_to_germination_max": {
+          "name": "days_to_germination_max",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "days_to_maturity_min": {
+          "name": "days_to_maturity_min",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "days_to_maturity_max": {
+          "name": "days_to_maturity_max",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "transplant_tolerance": {
+          "name": "transplant_tolerance",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "gdd_required": {
+          "name": "gdd_required",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "plant_before_first_frost_days": {
+          "name": "plant_before_first_frost_days",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sort_order": {
+          "name": "sort_order",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "crop_methods_crop_id_crops_id_fk": {
+          "name": "crop_methods_crop_id_crops_id_fk",
+          "tableFrom": "crop_methods",
+          "tableTo": "crops",
+          "columnsFrom": [
+            "crop_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.crops": {
+      "name": "crops",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name_sv": {
+          "name": "name_sv",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name_en": {
+          "name": "name_en",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lifecycle": {
+          "name": "lifecycle",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "frost_tolerance": {
+          "name": "frost_tolerance",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "min_night_temp_c": {
+          "name": "min_night_temp_c",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "daylength_requirement": {
+          "name": "daylength_requirement",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'neutral'"
+        },
+        "notes_sv": {
+          "name": "notes_sv",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "notes_en": {
+          "name": "notes_en",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.postcodes": {
+      "name": "postcodes",
+      "schema": "",
+      "columns": {
+        "postcode": {
+          "name": "postcode",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "lat": {
+          "name": "lat",
+          "type": "numeric(9, 6)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lng": {
+          "name": "lng",
+          "type": "numeric(9, 6)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "place_name": {
+          "name": "place_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "admin_name1": {
+          "name": "admin_name1",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "elevation_m": {
+          "name": "elevation_m",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.weather_stations": {
+      "name": "weather_stations",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lat": {
+          "name": "lat",
+          "type": "numeric(9, 6)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lng": {
+          "name": "lng",
+          "type": "numeric(9, 6)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "elevation_m": {
+          "name": "elevation_m",
+          "type": "numeric(7, 3)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "last_frost_doy": {
+          "name": "last_frost_doy",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_frost_p90": {
+          "name": "last_frost_p90",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "first_frost_doy": {
+          "name": "first_frost_doy",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "first_frost_p10": {
+          "name": "first_frost_p10",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "growing_days": {
+          "name": "growing_days",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "gdd_base5": {
+          "name": "gdd_base5",
+          "type": "numeric(7, 1)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "gdd_base5_p10": {
+          "name": "gdd_base5_p10",
+          "type": "numeric(7, 1)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "gdd_base5_cv": {
+          "name": "gdd_base5_cv",
+          "type": "numeric(4, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "gdd_base7": {
+          "name": "gdd_base7",
+          "type": "numeric(7, 1)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "gdd_base7_p10": {
+          "name": "gdd_base7_p10",
+          "type": "numeric(7, 1)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "gdd_base7_cv": {
+          "name": "gdd_base7_cv",
+          "type": "numeric(4, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "gdd_base10": {
+          "name": "gdd_base10",
+          "type": "numeric(7, 1)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "gdd_base10_p10": {
+          "name": "gdd_base10_p10",
+          "type": "numeric(7, 1)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "gdd_base10_cv": {
+          "name": "gdd_base10_cv",
+          "type": "numeric(4, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "gdd_base15": {
+          "name": "gdd_base15",
+          "type": "numeric(7, 1)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "gdd_base15_p10": {
+          "name": "gdd_base15_p10",
+          "type": "numeric(7, 1)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "gdd_base15_cv": {
+          "name": "gdd_base15_cv",
+          "type": "numeric(4, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "monthly_mean_temps": {
+          "name": "monthly_mean_temps",
+          "type": "numeric(4, 1)[]",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

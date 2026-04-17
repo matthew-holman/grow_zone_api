@@ -2,7 +2,7 @@ import 'dotenv/config';
 import { readFileSync } from 'fs';
 import { z } from 'zod';
 import { sql } from 'drizzle-orm';
-import { db, postcodeZones } from '../src/db/index.js';
+import { db, postcodes } from '../src/db/index.js';
 
 const PostcodeRecordSchema = z.object({
   postcode: z.string().min(1),
@@ -53,25 +53,21 @@ for (let i = 0; i < records.length; i += BATCH_SIZE) {
   const batchNum = Math.floor(i / BATCH_SIZE) + 1;
   console.log(`Batch ${batchNum}/${totalBatches} (${batch.length} records)...`);
 
-  await db.insert(postcodeZones)
-    .values(batch.flatMap((r) => {
-      return [{
-        postcode: r.postcode,
-        lat: String(r.lat),
-        lng: String(r.lng),
-        zoneId: 2,  // this should be removed from the schema, no zones anymore
-        placeName: r.placeName,
-        adminName1: r.adminName1,
-        elevationM: r.elevationM,
-      }];
-    }))
+  await db.insert(postcodes)
+    .values(batch.map((r) => ({
+      postcode:   r.postcode,
+      lat:        String(r.lat),
+      lng:        String(r.lng),
+      placeName:  r.placeName,
+      adminName1: r.adminName1,
+      elevationM: r.elevationM,
+    })))
     .onConflictDoUpdate({
-      target: postcodeZones.postcode,
+      target: postcodes.postcode,
       set: {
-        lat: sql`excluded.lat`,
-        lng: sql`excluded.lng`,
-        zoneId: sql`excluded.zone_id`,
-        placeName: sql`excluded.place_name`,
+        lat:        sql`excluded.lat`,
+        lng:        sql`excluded.lng`,
+        placeName:  sql`excluded.place_name`,
         adminName1: sql`excluded.admin_name1`,
         elevationM: sql`excluded.elevation_m`,
       },

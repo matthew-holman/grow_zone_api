@@ -20,10 +20,18 @@ export interface NearestStation {
   firstFrostDoy:    number | null;
   firstFrostP10:    number | null;
   growingDays:      number | null;
-  gddAnnual:        number | null;
-  gddP10:           number | null;
-  gddP90:           number | null;
-  gddCv:            number | null;
+  gddBase5:         number | null;
+  gddBase5P10:      number | null;
+  gddBase5Cv:       number | null;
+  gddBase7:         number | null;
+  gddBase7P10:      number | null;
+  gddBase7Cv:       number | null;
+  gddBase10:        number | null;
+  gddBase10P10:     number | null;
+  gddBase10Cv:      number | null;
+  gddBase15:        number | null;
+  gddBase15P10:     number | null;
+  gddBase15Cv:      number | null;
   monthlyMeanTemps: number[];
   distanceKm:       number;
 }
@@ -62,10 +70,18 @@ function parseStation(row: RawStationRow): NearestStation {
     firstFrostDoy:    row.first_frost_doy,
     firstFrostP10:    row.first_frost_p10,
     growingDays:      row.growing_days,
-    gddAnnual:        row.gdd_annual,
-    gddP10:           row.gdd_p10,
-    gddP90:           row.gdd_p90,
-    gddCv:            row.gdd_cv,
+    gddBase5:         row.gdd_base5,
+    gddBase5P10:      row.gdd_base5_p10,
+    gddBase5Cv:       row.gdd_base5_cv,
+    gddBase7:         row.gdd_base7,
+    gddBase7P10:      row.gdd_base7_p10,
+    gddBase7Cv:       row.gdd_base7_cv,
+    gddBase10:        row.gdd_base10,
+    gddBase10P10:     row.gdd_base10_p10,
+    gddBase10Cv:      row.gdd_base10_cv,
+    gddBase15:        row.gdd_base15,
+    gddBase15P10:     row.gdd_base15_p10,
+    gddBase15Cv:      row.gdd_base15_cv,
     monthlyMeanTemps: parsePgNumericArray(row.monthly_mean_temps),
     distanceKm:       row.distance_km,
   };

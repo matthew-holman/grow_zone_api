@@ -5,6 +5,9 @@ export {
   SelectCropMethodSchema,
   InsertCropMethodSchema,
   UpdateCropMethodSchema,
+  CropWithMethodsSchema,
+  InsertCropMethodBodySchema,
+  DeletedSchema,
 } from './crops.js'
 
 export type {
@@ -14,8 +17,8 @@ export type {
   UpdateCropMethod,
 } from './crops.js'
 
-export { ErrorSchema } from './common.js'
-export type { AppError } from './common.js'
+export { ErrorSchema, ValidationErrorSchema } from './common.js'
+export type { AppError, ValidationError } from './common.js'
 
 export {
   PostcodeQuery,

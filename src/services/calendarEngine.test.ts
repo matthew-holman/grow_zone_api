@@ -30,10 +30,18 @@ const stockholmProfile: ClimateProfile = {
   firstFrostDoy:    282,   // October 9th
   firstFrostP10:    268,   // September 25th
   growingDays:      155,
-  gddAnnual:        1799,
-  gddP10:           1620,
-  gddP90:           1980,
-  gddCv:            0.10,
+  gddBase5:         1799,
+  gddBase5P10:      1620,
+  gddBase5Cv:       0.10,
+  gddBase7:         1374,
+  gddBase7P10:      1238,
+  gddBase7Cv:       0.11,
+  gddBase10:        868,
+  gddBase10P10:     712,
+  gddBase10Cv:      0.14,
+  gddBase15:        258,
+  gddBase15P10:     159,
+  gddBase15Cv:      0.27,
   monthlyMeanTemps: [-1.2, -0.7, 2.1, 6.1, 11.5, 16.3, 18.3, 17.1, 13.3, 7.9, 4.0, 0.9],
 }
 
@@ -44,10 +52,18 @@ const falsterboProfile: ClimateProfile = {
   firstFrostDoy:    327,   // November 23rd
   firstFrostP10:    312,   // November 8th
   growingDays:      235,
-  gddAnnual:        2105,
-  gddP10:           1901,
-  gddP90:           2299,
-  gddCv:            0.07,
+  gddBase5:         2105,
+  gddBase5P10:      1901,
+  gddBase5Cv:       0.07,
+  gddBase7:         1607,
+  gddBase7P10:      1428,
+  gddBase7Cv:       0.09,
+  gddBase10:        1018,
+  gddBase10P10:     831,
+  gddBase10Cv:      0.12,
+  gddBase15:        301,
+  gddBase15P10:     174,
+  gddBase15Cv:      0.30,
   monthlyMeanTemps: [2.4, 2.1, 3.8, 7.3, 12.1, 16.3, 18.1, 18.1, 15.5, 11.2, 7.3, 4.5],
 }
 
@@ -58,10 +74,18 @@ const kirunaProfile: ClimateProfile = {
   firstFrostDoy:    253,   // September 10th
   firstFrostP10:    241,   // August 29th
   growingDays:      101,
-  gddAnnual:        816,
-  gddP10:           601,
-  gddP90:           1003,
-  gddCv:            0.16,
+  gddBase5:         816,
+  gddBase5P10:      601,
+  gddBase5Cv:       0.16,
+  gddBase7:         614,
+  gddBase7P10:      399,
+  gddBase7Cv:       0.19,
+  gddBase10:        311,
+  gddBase10P10:     96,
+  gddBase10Cv:      0.28,
+  gddBase15:        15,
+  gddBase15P10:     0,
+  gddBase15Cv:      0.0,
   monthlyMeanTemps: [-12.0, -9.7, -6.2, -1.3, 4.9, 10.8, 14.0, 11.6, 7.1, -0.3, -5.8, -8.8],
 }
 
@@ -220,7 +244,7 @@ describe('assessFeasibility', () => {
     })
 
     it('is infeasible in Kiruna — insufficient GDD', () => {
-      // Kiruna gddP10=601 < 75% of required 1000 GDD — fails GDD check before night temp
+      // Kiruna gddBase5P10=601 < 75% of required 1000 GDD — fails GDD check before night temp
       const result = assessFeasibility(kirunaProfile, tomatoMethod, tomatoCrop)
       expect(result.status).toBe('infeasible')
       expect(result.reason).toContain('GDD')
@@ -241,7 +265,7 @@ describe('assessFeasibility', () => {
   })
 
   describe('high variability warning', () => {
-    it('returns marginal for Kiruna due to high gddCv', () => {
+    it('returns marginal for Kiruna due to high gddBase5Cv', () => {
       // Even if GDD check passes, CV 0.16 > 0.15 threshold triggers marginal
       const result = assessFeasibility(kirunaProfile, carrotMethod, carrotCrop)
       if (result.status === 'marginal') {

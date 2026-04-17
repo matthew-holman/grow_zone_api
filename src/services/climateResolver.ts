@@ -96,13 +96,30 @@ export function resolveClimateProfile(
     firstFrostDoy,
     firstFrostP10,
     growingDays:      firstFrostDoy - lastFrostDoy,
-    gddAnnual:        round1dp(resolve(s => req(s.gddAnnual, 'gddAnnual'), GDD_PER_100M_ELEVATION)),
-    gddP10:           round1dp(resolve(s => req(s.gddP10,    'gddP10'),    GDD_PER_100M_ELEVATION)),
-    gddP90:           round1dp(resolve(s => req(s.gddP90,    'gddP90'),    GDD_PER_100M_ELEVATION)),
-    gddCv:            round2dp(weightedAverage(
-                        stationWeights.map(sw => req(sw.station.gddCv, 'gddCv')),
+    gddBase5:         round1dp(resolve(s => req(s.gddBase5,    'gddBase5'),    GDD_PER_100M_ELEVATION)),
+    gddBase5P10:      round1dp(resolve(s => req(s.gddBase5P10, 'gddBase5P10'), GDD_PER_100M_ELEVATION)),
+    gddBase5Cv:       round2dp(weightedAverage(
+                        stationWeights.map(sw => req(sw.station.gddBase5Cv, 'gddBase5Cv')),
                         weights
                       )),
+      gddBase7:         round1dp(resolve(s => req(s.gddBase7,    'gddBase7'),    GDD_PER_100M_ELEVATION)),
+      gddBase7P10:      round1dp(resolve(s => req(s.gddBase7P10, 'gddBase7P10'), GDD_PER_100M_ELEVATION)),
+      gddBase7Cv:       round2dp(weightedAverage(
+          stationWeights.map(sw => req(sw.station.gddBase5Cv, 'gddBase7Cv')),
+          weights
+      )),
+      gddBase10:         round1dp(resolve(s => req(s.gddBase10,    'gddBase10'),    GDD_PER_100M_ELEVATION)),
+      gddBase10P10:      round1dp(resolve(s => req(s.gddBase10P10, 'gddBase10P10'), GDD_PER_100M_ELEVATION)),
+      gddBase10Cv:       round2dp(weightedAverage(
+          stationWeights.map(sw => req(sw.station.gddBase10Cv, 'gddBase10Cv')),
+          weights
+      )),
+      gddBase15:         round1dp(resolve(s => req(s.gddBase15,    'gddBase15'),    GDD_PER_100M_ELEVATION)),
+      gddBase15P10:      round1dp(resolve(s => req(s.gddBase15P10, 'gddBase15P10'), GDD_PER_100M_ELEVATION)),
+      gddBase15Cv:       round2dp(weightedAverage(
+          stationWeights.map(sw => req(sw.station.gddBase15Cv, 'gddBase5Cv')),
+          weights
+      )),
     monthlyMeanTemps: resolveMonthlyTemps(stationWeights),
   };
 }

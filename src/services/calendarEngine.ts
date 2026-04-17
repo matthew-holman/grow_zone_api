@@ -100,16 +100,16 @@ export function assessFeasibility(
 ): { status: FeasibilityStatus; reason: string | null } {
   // 1. GDD check
   if (method.gddRequired !== null) {
-    if (profile.gddP10 < method.gddRequired * 0.75) {
+    if (profile.gddBase5P10 < method.gddRequired * 0.75) {
       return {
         status: 'infeasible',
-        reason: `Requires ${method.gddRequired} GDD but this location reliably provides only ${profile.gddP10} GDD (10th percentile).`,
+        reason: `Requires ${method.gddRequired} GDD but this location reliably provides only ${profile.gddBase5P10} GDD (10th percentile).`,
       }
     }
-    if (profile.gddP10 < method.gddRequired) {
+    if (profile.gddBase5P10 < method.gddRequired) {
       return {
         status: 'marginal',
-        reason: `Requires ${method.gddRequired} GDD. This location typically provides ${profile.gddAnnual} GDD but only ${profile.gddP10} GDD in cooler years. Choose the earliest maturing variety.`,
+        reason: `Requires ${method.gddRequired} GDD. This location typically provides ${profile.gddBase5} GDD but only ${profile.gddBase5P10} GDD in cooler years. Choose the earliest maturing variety.`,
       }
     }
   }
@@ -143,10 +143,10 @@ export function assessFeasibility(
   }
 
   // 4. High variability warning
-  if (profile.gddCv > 0.15) {
+  if (profile.gddBase5Cv > 0.15) {
     return {
       status: 'marginal',
-      reason: `Growing conditions in this area vary significantly year to year (variability score: ${profile.gddCv}). Choose early-maturing varieties as a precaution.`,
+      reason: `Growing conditions in this area vary significantly year to year (variability score: ${profile.gddBase5Cv}). Choose early-maturing varieties as a precaution.`,
     }
   }
 

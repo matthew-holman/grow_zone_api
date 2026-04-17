@@ -1,14 +1,13 @@
 import { pgTable, text, numeric, smallint, integer, timestamp } from "drizzle-orm/pg-core";
 
-export const postcodeZones = pgTable("postcode_zones", {
-  postcode: text("postcode").primaryKey(),
-  lat: numeric("lat", { precision: 9, scale: 6 }).notNull(),
-  lng: numeric("lng", { precision: 9, scale: 6 }).notNull(),
-  zoneId: smallint("zone_id").notNull(),
-  placeName: text("place_name").notNull(),
+export const postcodes = pgTable("postcodes", {
+  postcode:   text("postcode").primaryKey(),
+  lat:        numeric("lat", { precision: 9, scale: 6 }).notNull(),
+  lng:        numeric("lng", { precision: 9, scale: 6 }).notNull(),
+  placeName:  text("place_name").notNull(),
   adminName1: text("admin_name1"),
   elevationM: smallint("elevation_m").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  createdAt:  timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 export const weatherStations = pgTable('weather_stations', {
@@ -22,10 +21,18 @@ export const weatherStations = pgTable('weather_stations', {
   firstFrostDoy:    smallint('first_frost_doy'),
   firstFrostP10:    smallint('first_frost_p10'),
   growingDays:      smallint('growing_days'),
-  gddAnnual:        numeric('gdd_annual', { precision: 7, scale: 1 }),
-  gddP10:           numeric('gdd_p10', { precision: 7, scale: 1 }),
-  gddP90:           numeric('gdd_p90', { precision: 7, scale: 1 }),
-  gddCv:            numeric('gdd_cv', { precision: 4, scale: 2 }),
+  gddBase5:         numeric('gdd_base5',      { precision: 7, scale: 1 }),
+  gddBase5P10:      numeric('gdd_base5_p10',  { precision: 7, scale: 1 }),
+  gddBase5Cv:       numeric('gdd_base5_cv',   { precision: 4, scale: 2 }),
+  gddBase7:         numeric('gdd_base7',      { precision: 7, scale: 1 }),
+  gddBase7P10:      numeric('gdd_base7_p10',  { precision: 7, scale: 1 }),
+  gddBase7Cv:       numeric('gdd_base7_cv',   { precision: 4, scale: 2 }),
+  gddBase10:        numeric('gdd_base10',     { precision: 7, scale: 1 }),
+  gddBase10P10:     numeric('gdd_base10_p10', { precision: 7, scale: 1 }),
+  gddBase10Cv:      numeric('gdd_base10_cv',  { precision: 4, scale: 2 }),
+  gddBase15:        numeric('gdd_base15',     { precision: 7, scale: 1 }),
+  gddBase15P10:     numeric('gdd_base15_p10', { precision: 7, scale: 1 }),
+  gddBase15Cv:      numeric('gdd_base15_cv',  { precision: 4, scale: 2 }),
   monthlyMeanTemps: numeric('monthly_mean_temps', { precision: 4, scale: 1 })
                       .array()
                       .notNull(),

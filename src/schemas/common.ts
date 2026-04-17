@@ -6,3 +6,11 @@ export const ErrorSchema = z.object({
 }).openapi('Error')
 
 export type AppError = z.infer<typeof ErrorSchema>
+
+export const ValidationErrorSchema = z.object({
+  error:   z.string().openapi({ example: 'validation_error' }),
+  message: z.string(),
+  issues:  z.array(z.record(z.string(), z.unknown())),
+}).openapi('ValidationError')
+
+export type ValidationError = z.infer<typeof ValidationErrorSchema>

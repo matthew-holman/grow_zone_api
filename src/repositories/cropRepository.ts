@@ -1,8 +1,8 @@
 import { eq, asc } from 'drizzle-orm'
 import { db } from '../db/index.js'
 import { crops, cropMethods } from '../db/schema.js'
-import type { CropWithMethods } from '../services/calendarEngine.js'
 import type { InsertCrop, UpdateCrop, InsertCropMethod, UpdateCropMethod } from '../schemas/crops.js'
+import type { CropWithMethods } from '../services/calendarEngine.js'
 
 // Used by the calendar pipeline — returns only the fields the engine needs,
 // with explicit mapping and a typed return signature.

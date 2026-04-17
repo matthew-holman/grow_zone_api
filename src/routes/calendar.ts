@@ -1,14 +1,14 @@
 import { OpenAPIHono, createRoute } from '@hono/zod-openapi'
 import type { RouteHandler } from '@hono/zod-openapi'
 import { getAllCropsWithMethods } from '../repositories/cropRepository.js'
-import { generateCalendar } from '../services/calendarEngine.js'
-import { resolveClimateProfile } from '../services/climateResolver.js'
-import { findNearestStations, PostcodeNotFoundError, InsufficientStationsError } from '../services/stationLookup.js'
 import {
   PostcodeQuery,
   CalendarResponseSchema,
   ErrorSchema,
 } from '../schemas/index.js'
+import { generateCalendar } from '../services/calendarEngine.js'
+import { resolveClimateProfile } from '../services/climateResolver.js'
+import { findNearestStations, PostcodeNotFoundError, InsufficientStationsError } from '../services/stationLookup.js'
 
 // ---------------------------------------------------------------------------
 // Route definition
@@ -69,10 +69,9 @@ const getCalendarHandler: RouteHandler<typeof getCalendarRoute> = async (c) => {
         firstFrostDoy:    profile.firstFrostDoy,
         firstFrostP10:    profile.firstFrostP10,
         growingDays:      profile.growingDays,
-        gddAnnual:        profile.gddAnnual,
-        gddP10:           profile.gddP10,
-        gddP90:           profile.gddP90,
-        gddCv:            profile.gddCv,
+        gddBase5:         profile.gddBase5,
+        gddBase5P10:      profile.gddBase5P10,
+        gddBase5Cv:       profile.gddBase5Cv,
         monthlyMeanTemps: profile.monthlyMeanTemps,
       },
       crops: calendar,

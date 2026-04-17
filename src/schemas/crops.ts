@@ -1,5 +1,5 @@
+import { z } from '@hono/zod-openapi'
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
-import { z } from 'zod'
 import { crops, cropMethods } from '../db/schema.js'
 
 // Schemas are derived from the Drizzle table definitions via drizzle-zod.
@@ -8,7 +8,7 @@ import { crops, cropMethods } from '../db/schema.js'
 
 // ── Crops ──────────────────────────────────────────────────────────────────
 
-export const SelectCropSchema = createSelectSchema(crops)
+export const SelectCropSchema = createSelectSchema(crops).openapi('Crop')
 
 export const InsertCropSchema = createInsertSchema(crops, {
   id:                   (schema) => schema.min(1).regex(/^[a-z-]+$/, 'id must be lowercase letters and hyphens only'),
@@ -27,7 +27,7 @@ export const UpdateCropSchema = InsertCropSchema.omit({ id: true })
 
 // ── Crop methods ───────────────────────────────────────────────────────────
 
-export const SelectCropMethodSchema = createSelectSchema(cropMethods)
+export const SelectCropMethodSchema = createSelectSchema(cropMethods).openapi('CropMethod')
 
 export const InsertCropMethodSchema = createInsertSchema(cropMethods, {
   id:                        (schema) => schema.min(1).regex(/^[a-z-]+$/, 'id must be lowercase letters and hyphens only'),
@@ -49,6 +49,22 @@ export const InsertCropMethodSchema = createInsertSchema(cropMethods, {
 }).omit({ createdAt: true })
 
 export const UpdateCropMethodSchema = InsertCropMethodSchema.omit({ id: true, cropId: true })
+
+// ── Composite / response schemas ───────────────────────────────────────────
+
+// Full crop row with its methods — returned by list/get admin endpoints.
+export const CropWithMethodsSchema = SelectCropSchema
+  .extend({ methods: z.array(SelectCropMethodSchema) })
+  .openapi('CropWithMethods')
+
+// Body for POST /:id/methods — cropId is injected from the URL, not the body.
+export const InsertCropMethodBodySchema = InsertCropMethodSchema.omit({ cropId: true })
+
+// Confirmation envelope returned by DELETE endpoints.
+export const DeletedSchema = z.object({
+  deleted: z.literal(true),
+  id:      z.string(),
+}).openapi('Deleted')
 
 // ── Inferred types ─────────────────────────────────────────────────────────
 
