@@ -20,6 +20,7 @@ export async function getAllCropsWithMethods(): Promise<CropWithMethods[]> {
     frostTolerance:       crop.frostTolerance,
     minNightTempC:        crop.minNightTempC,
     daylengthRequirement: crop.daylengthRequirement,
+    gddBaseTempC:         crop.gddBaseTempC,
     methods:              methodRows
                             .filter(m => m.cropId === crop.id)
                             .map(m => ({
@@ -33,10 +34,11 @@ export async function getAllCropsWithMethods(): Promise<CropWithMethods[]> {
                               daysToGerminationMax:      m.daysToGerminationMax,
                               daysToMaturityMin:         m.daysToMaturityMin,
                               daysToMaturityMax:         m.daysToMaturityMax,
-                              transplantTolerance:       m.transplantTolerance,
-                              gddRequired:               m.gddRequired,
-                              plantBeforeFirstFrostDays: m.plantBeforeFirstFrostDays,
-                              sortOrder:                 m.sortOrder,
+                              transplantTolerance:        m.transplantTolerance,
+                              gddToMaturity:              m.gddToMaturity,
+                              gddToMaturityP10:           m.gddToMaturityP10,
+                              weeksIndoorBeforeLastFrost: m.weeksIndoorBeforeLastFrost,
+                              sortOrder:                  m.sortOrder,
                             })),
   }))
 }
@@ -73,6 +75,7 @@ export async function createCrop(data: InsertCrop) {
     frostTolerance:       data.frostTolerance,
     minNightTempC:        data.minNightTempC,
     daylengthRequirement: data.daylengthRequirement,
+    gddBaseTempC:         data.gddBaseTempC,
     notesSv:              data.notesSv ?? null,
     notesEn:              data.notesEn ?? null,
   }).returning()
@@ -89,6 +92,7 @@ export async function updateCrop(id: string, data: UpdateCrop) {
       frostTolerance:       data.frostTolerance,
       minNightTempC:        data.minNightTempC,
       daylengthRequirement: data.daylengthRequirement,
+      gddBaseTempC:         data.gddBaseTempC,
       notesSv:              data.notesSv ?? null,
       notesEn:              data.notesEn ?? null,
     })
@@ -127,10 +131,11 @@ export async function createMethod(data: InsertCropMethod) {
     daysToGerminationMax:      data.daysToGerminationMax,
     daysToMaturityMin:         data.daysToMaturityMin,
     daysToMaturityMax:         data.daysToMaturityMax,
-    transplantTolerance:       data.transplantTolerance,
-    gddRequired:               data.gddRequired,
-    plantBeforeFirstFrostDays: data.plantBeforeFirstFrostDays,
-    sortOrder:                 data.sortOrder,
+    transplantTolerance:        data.transplantTolerance,
+    gddToMaturity:              data.gddToMaturity,
+    gddToMaturityP10:           data.gddToMaturityP10,
+    weeksIndoorBeforeLastFrost: data.weeksIndoorBeforeLastFrost,
+    sortOrder:                  data.sortOrder,
   }).returning()
   return created
 }
@@ -147,10 +152,11 @@ export async function updateMethod(id: string, data: UpdateCropMethod) {
       daysToGerminationMax:      data.daysToGerminationMax,
       daysToMaturityMin:         data.daysToMaturityMin,
       daysToMaturityMax:         data.daysToMaturityMax,
-      transplantTolerance:       data.transplantTolerance,
-      gddRequired:               data.gddRequired,
-      plantBeforeFirstFrostDays: data.plantBeforeFirstFrostDays,
-      sortOrder:                 data.sortOrder,
+      transplantTolerance:        data.transplantTolerance,
+      gddToMaturity:              data.gddToMaturity,
+      gddToMaturityP10:           data.gddToMaturityP10,
+      weeksIndoorBeforeLastFrost: data.weeksIndoorBeforeLastFrost,
+      sortOrder:                  data.sortOrder,
     })
     .where(eq(cropMethods.id, id))
     .returning()

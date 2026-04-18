@@ -49,6 +49,7 @@ export const crops = pgTable('crops', {
   frostTolerance:       text('frost_tolerance').notNull(),
   minNightTempC:        smallint('min_night_temp_c'),
   daylengthRequirement: text('daylength_requirement').notNull().default('neutral'),
+  gddBaseTempC:         smallint('gdd_base_temp_c').notNull(),
   notesSv:              text('notes_sv'),
   notesEn:              text('notes_en'),
   createdAt:            timestamp('created_at', { withTimezone: true })
@@ -69,10 +70,11 @@ export const cropMethods = pgTable('crop_methods', {
   daysToGerminationMax:      smallint('days_to_germination_max'),
   daysToMaturityMin:         smallint('days_to_maturity_min'),
   daysToMaturityMax:         smallint('days_to_maturity_max'),
-  transplantTolerance:       text('transplant_tolerance').notNull(),
-  gddRequired:               smallint('gdd_required'),
-  plantBeforeFirstFrostDays: smallint('plant_before_first_frost_days'),
-  sortOrder:                 smallint('sort_order').notNull().default(0),
+  transplantTolerance:        text('transplant_tolerance').notNull(),
+  gddToMaturity:              smallint('gdd_to_maturity'),
+  gddToMaturityP10:           smallint('gdd_to_maturity_p10'),
+  weeksIndoorBeforeLastFrost: smallint('weeks_indoor_before_last_frost'),
+  sortOrder:                  smallint('sort_order').notNull().default(0),
   createdAt:                 timestamp('created_at', { withTimezone: true })
                                .notNull()
                                .defaultNow(),

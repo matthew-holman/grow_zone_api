@@ -13,10 +13,11 @@ const CropMethodSchema = z.object({
   daysToGerminationMax:      z.number().int().nullable(),
   daysToMaturityMin:         z.number().int().nullable(),
   daysToMaturityMax:         z.number().int().nullable(),
-  transplantTolerance:       z.enum(['good', 'poor', 'none', 'direct-only']),
-  gddRequired:               z.number().int().nullable(),
-  plantBeforeFirstFrostDays: z.number().int().nullable(),
-  sortOrder:                 z.number().int(),
+  transplantTolerance:        z.enum(['good', 'poor', 'none', 'direct-only']),
+  gddToMaturity:              z.number().int().nullable(),
+  gddToMaturityP10:           z.number().int().nullable(),
+  weeksIndoorBeforeLastFrost: z.number().int().nullable(),
+  sortOrder:                  z.number().int(),
 });
 
 const CropSchema = z.object({
@@ -26,6 +27,7 @@ const CropSchema = z.object({
   frostTolerance:       z.enum(['none', 'light', 'hard']),
   minNightTempC:        z.number().int().nullable(),
   daylengthRequirement: z.enum(['neutral', 'long', 'short']),
+  gddBaseTempC:         z.union([z.literal(5), z.literal(7), z.literal(10), z.literal(15)]),
   notes:                z.object({ sv: z.string(), en: z.string() }).optional(),
   methods:              z.array(CropMethodSchema).min(1),
 });
@@ -63,6 +65,7 @@ const cropRows = cropData.map((c) => ({
   frostTolerance:       c.frostTolerance,
   minNightTempC:        c.minNightTempC,
   daylengthRequirement: c.daylengthRequirement,
+  gddBaseTempC:         c.gddBaseTempC,
   notesSv:              c.notes?.sv ?? null,
   notesEn:              c.notes?.en ?? null,
 }));
@@ -79,10 +82,11 @@ const methodRows = cropData.flatMap((c) =>
     daysToGerminationMax:      m.daysToGerminationMax,
     daysToMaturityMin:         m.daysToMaturityMin,
     daysToMaturityMax:         m.daysToMaturityMax,
-    transplantTolerance:       m.transplantTolerance,
-    gddRequired:               m.gddRequired,
-    plantBeforeFirstFrostDays: m.plantBeforeFirstFrostDays,
-    sortOrder:                 m.sortOrder,
+    transplantTolerance:        m.transplantTolerance,
+    gddToMaturity:              m.gddToMaturity,
+    gddToMaturityP10:           m.gddToMaturityP10,
+    weeksIndoorBeforeLastFrost: m.weeksIndoorBeforeLastFrost,
+    sortOrder:                  m.sortOrder,
   }))
 );
 
@@ -99,6 +103,7 @@ await db.insert(crops)
       frostTolerance:       sql`excluded.frost_tolerance`,
       minNightTempC:        sql`excluded.min_night_temp_c`,
       daylengthRequirement: sql`excluded.daylength_requirement`,
+      gddBaseTempC:         sql`excluded.gdd_base_temp_c`,
       notesSv:              sql`excluded.notes_sv`,
       notesEn:              sql`excluded.notes_en`,
     },
@@ -118,10 +123,11 @@ await db.insert(cropMethods)
       daysToGerminationMax:      sql`excluded.days_to_germination_max`,
       daysToMaturityMin:         sql`excluded.days_to_maturity_min`,
       daysToMaturityMax:         sql`excluded.days_to_maturity_max`,
-      transplantTolerance:       sql`excluded.transplant_tolerance`,
-      gddRequired:               sql`excluded.gdd_required`,
-      plantBeforeFirstFrostDays: sql`excluded.plant_before_first_frost_days`,
-      sortOrder:                 sql`excluded.sort_order`,
+      transplantTolerance:        sql`excluded.transplant_tolerance`,
+      gddToMaturity:              sql`excluded.gdd_to_maturity`,
+      gddToMaturityP10:           sql`excluded.gdd_to_maturity_p10`,
+      weeksIndoorBeforeLastFrost: sql`excluded.weeks_indoor_before_last_frost`,
+      sortOrder:                  sql`excluded.sort_order`,
     },
   });
 

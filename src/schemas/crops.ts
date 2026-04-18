@@ -11,9 +11,9 @@ import { crops, cropMethods } from '../db/schema.js'
 export const SelectCropSchema = createSelectSchema(crops).openapi('Crop')
 
 export const InsertCropSchema = createInsertSchema(crops, {
-  id:                   (schema) => schema.min(1).regex(/^[a-z-]+$/, 'id must be lowercase letters and hyphens only'),
-  nameSv:               (schema) => schema.min(1),
-  nameEn:               (schema) => schema.min(1),
+  id:                   (schema: { min: (arg0: number) => { (): any; new(): any; regex: { (arg0: RegExp, arg1: string): any; new(): any } } }) => schema.min(1).regex(/^[a-z-]+$/, 'id must be lowercase letters and hyphens only'),
+  nameSv:               (schema: { min: (arg0: number) => any }) => schema.min(1),
+  nameEn:               (schema: { min: (arg0: number) => any }) => schema.min(1),
   lifecycle:            z.enum(['annual', 'overwintered', 'biennial', 'perennial']),
   frostTolerance:       z.enum(['none', 'light', 'hard']),
   // Override optional+nullable → required+nullable to match the existing API contract.
@@ -21,6 +21,8 @@ export const InsertCropSchema = createInsertSchema(crops, {
   minNightTempC:        z.number().int().min(-10).max(25).nullable(),
   // Override optional (has DB default) → required so callers always declare it.
   daylengthRequirement: z.enum(['neutral', 'long', 'short']),
+  // Constrained to the four base temps available in weather station data.
+  gddBaseTempC: z.union([z.literal(5), z.literal(7), z.literal(10), z.literal(15)]),
 }).omit({ createdAt: true })
 
 export const UpdateCropSchema = InsertCropSchema.omit({ id: true })
@@ -30,10 +32,10 @@ export const UpdateCropSchema = InsertCropSchema.omit({ id: true })
 export const SelectCropMethodSchema = createSelectSchema(cropMethods).openapi('CropMethod')
 
 export const InsertCropMethodSchema = createInsertSchema(cropMethods, {
-  id:                        (schema) => schema.min(1).regex(/^[a-z-]+$/, 'id must be lowercase letters and hyphens only'),
-  cropId:                    (schema) => schema.min(1),
-  labelSv:                   (schema) => schema.min(1),
-  labelEn:                   (schema) => schema.min(1),
+  id:                        (schema: { min: (arg0: number) => { (): any; new(): any; regex: { (arg0: RegExp, arg1: string): any; new(): any } } }) => schema.min(1).regex(/^[a-z-]+$/, 'id must be lowercase letters and hyphens only'),
+  cropId:                    (schema: { min: (arg0: number) => any }) => schema.min(1),
+  labelSv:                   (schema: { min: (arg0: number) => any }) => schema.min(1),
+  labelEn:                   (schema: { min: (arg0: number) => any }) => schema.min(1),
   // All nullable numeric fields: override optional+nullable → required+nullable.
   germinationMinSoilTempC:   z.number().int().min(0).max(40).nullable(),
   germinationOptSoilTempC:   z.number().int().min(0).max(40).nullable(),
@@ -41,9 +43,10 @@ export const InsertCropMethodSchema = createInsertSchema(cropMethods, {
   daysToGerminationMax:      z.number().int().min(1).max(60).nullable(),
   daysToMaturityMin:         z.number().int().min(1).max(365).nullable(),
   daysToMaturityMax:         z.number().int().min(1).max(365).nullable(),
-  transplantTolerance:       z.enum(['good', 'poor', 'none', 'direct-only']),
-  gddRequired:               z.number().int().min(0).max(5000).nullable(),
-  plantBeforeFirstFrostDays: z.number().int().min(1).max(90).nullable(),
+  transplantTolerance:        z.enum(['good', 'poor', 'none', 'direct-only']),
+  gddToMaturity:              z.number().int().min(0).max(5000).nullable(),
+  gddToMaturityP10:           z.number().int().min(0).max(5000).nullable(),
+  weeksIndoorBeforeLastFrost: z.number().int().min(1).max(52).nullable(),
   // Override optional (has DB default 0) → required with Zod-level default.
   sortOrder:                 z.number().int().min(0).default(0),
 }).omit({ createdAt: true })

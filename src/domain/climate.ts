@@ -10,15 +10,15 @@ export interface ClimateProfile {
   gddBase5:         number;
   gddBase5P10:      number;
   gddBase5Cv:       number;
-    gddBase7:         number;
-    gddBase7P10:      number;
-    gddBase7Cv:       number;
-    gddBase10:         number;
-    gddBase10P10:      number;
-    gddBase10Cv:       number;
-    gddBase15:         number;
-    gddBase15P10:      number;
-    gddBase15Cv:       number;
+  gddBase7:         number;
+  gddBase7P10:      number;
+  gddBase7Cv:       number;
+  gddBase10:        number;
+  gddBase10P10:     number;
+  gddBase10Cv:      number;
+  gddBase15:        number;
+  gddBase15P10:     number;
+  gddBase15Cv:      number;
   monthlyMeanTemps: number[];
 }
 

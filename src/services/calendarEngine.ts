@@ -11,13 +11,23 @@ import type {
   CropWithMethods,
 } from '../schemas/crops.js'
 
+// Minimum GDD coefficient-of-variation above which growing conditions are
+// considered too variable to reliably reach maturity.
+const GDD_CV_MARGINAL_THRESHOLD = 0.15
+
+// Assumed indoor propagator temperature for the seedling phase of transplanted
+// crops. Used to credit GDD accumulated between indoor sow and transplant.
+// 18°C reflects a conservative home windowsill or unheated propagator — a
+// heated mat would be warmer, but we err on the side of caution.
+const INDOOR_PROPAGATOR_TEMP_C = 18
+
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
 
 export function generateCalendar(
-  profile: ClimateProfile,
-  crops: CropWithMethods[],
+    profile: ClimateProfile,
+    crops: CropWithMethods[],
 ): CropCalendar[] {
   return crops.map(crop => ({
     cropId:     crop.id,
@@ -25,37 +35,38 @@ export function generateCalendar(
     cropNameEn: crop.nameEn,
     lifecycle:  crop.lifecycle,
     methods:    crop.methods
-      .slice()
-      .sort((a, b) => a.sortOrder - b.sortOrder)
-      .map(method => {
-        switch (crop.lifecycle) {
-          case 'overwintered':
-            return resolveOverwinteredCalendar(profile, method, crop)
-          case 'annual':
-            return resolveAnnualCalendar(profile, method, crop)
-          default:
-            return unsupportedLifecycle(method, crop)
-        }
-      }),
+        .slice()
+        .sort((a: { sortOrder: number }, b: { sortOrder: number }) => a.sortOrder - b.sortOrder)
+        .map((method: CropMethodCalendarRecord) => {
+          switch (crop.lifecycle) {
+            case 'overwintered':
+              return generateOverwinteredCalendarForCrop(profile, method, crop)
+            case 'annual':
+              return generateCalendarForCrop(profile, method, crop)
+            default:
+              return unsupportedLifecycle(method, crop)
+          }
+        }),
   }))
 }
 
 export function dayOfYearToCalendarDate(doy: number): { month: number; day: number } {
-  const date = new Date(2023, 0, 1)  // non-leap year so DOY aligns with standard 365-day calendar
+  // Use a non-leap year so DOY aligns with a standard 365-day calendar.
+  const date = new Date(2023, 0, 1)
   date.setDate(date.getDate() + Math.round(doy) - 1)
   return { month: date.getMonth() + 1, day: date.getDate() }
 }
 
 export function estimateNightTemp(
-  monthlyMeanTemps: number[],
-  month: number,  // 0-indexed
+    monthlyMeanTemps: number[],
+    month: number,  // 0-indexed
 ): number {
   return monthlyMeanTemps[month] - 5
 }
 
 export function firstMonthAboveNightTemp(
-  monthlyMeanTemps: number[],
-  minNightTempC: number,
+    monthlyMeanTemps: number[],
+    minNightTempC: number,
 ): number | null {
   for (let month = 0; month < 12; month++) {
     if (estimateNightTemp(monthlyMeanTemps, month) >= minNightTempC) {
@@ -66,27 +77,29 @@ export function firstMonthAboveNightTemp(
 }
 
 export function assessFeasibility(
-  profile: ClimateProfile,
-  method: CropMethodCalendarRecord,
-  crop: CropCalendarRecord,
+    profile: ClimateProfile,
+    method: CropMethodCalendarRecord,
+    crop: CropCalendarRecord,
 ): { status: FeasibilityStatus; reason: string | null } {
-  // 1. GDD check
-  if (method.gddRequired !== null) {
-    if (profile.gddBase5P10 < method.gddRequired * 0.75) {
+  const cropGdd = getGddForCrop(profile, crop.gddBaseTempC)
+
+  // 1. GDD check — uses the crop's own base temperature, not a hardcoded base.
+  if (method.gddToMaturity !== null) {
+    if (cropGdd.p10 < method.gddToMaturity * 0.75) {
       return {
         status: 'infeasible',
-        reason: `Requires ${method.gddRequired} GDD but this location reliably provides only ${profile.gddBase5P10} GDD (10th percentile).`,
+        reason: `Requires ${method.gddToMaturity} GDD (base ${crop.gddBaseTempC}°C) but this location reliably provides only ${cropGdd.p10} GDD (10th percentile).`,
       }
     }
-    if (profile.gddBase5P10 < method.gddRequired) {
+    if (cropGdd.p10 < method.gddToMaturity) {
       return {
         status: 'marginal',
-        reason: `Requires ${method.gddRequired} GDD. This location typically provides ${profile.gddBase5} GDD but only ${profile.gddBase5P10} GDD in cooler years. Choose the earliest maturing variety.`,
+        reason: `Requires ${method.gddToMaturity} GDD (base ${crop.gddBaseTempC}°C). This location typically provides ${cropGdd.median} GDD but only ${cropGdd.p10} GDD in cooler years. Choose the earliest maturing variety.`,
       }
     }
   }
 
-  // 2. Night temperature check
+  // 2. Night temperature check — ensures the crop can survive outdoors at all.
   if (crop.minNightTempC !== null) {
     const warmMonth = firstMonthAboveNightTemp(profile.monthlyMeanTemps, crop.minNightTempC)
     if (warmMonth === null) {
@@ -97,7 +110,9 @@ export function assessFeasibility(
     }
   }
 
-  // 3. Season length check for direct-sow crops
+  // 3. Season length check for direct-sow crops only.
+  // Transplanted crops bypass this because their indoor head start is already
+  // captured in the GDD check above.
   if (method.transplantTolerance === 'none' || method.transplantTolerance === 'direct-only') {
     const daysNeeded = (method.daysToMaturityMax ?? 0) + (method.daysToGerminationMax ?? 0)
     if (profile.growingDays < daysNeeded * 0.75) {
@@ -114,29 +129,34 @@ export function assessFeasibility(
     }
   }
 
-  // 4. High variability warning
-  if (profile.gddBase5Cv > 0.15) {
+  // 4. High variability warning — even if median GDD is sufficient, a high CV
+  // means unreliable outcomes year to year.
+  if (cropGdd.cv > GDD_CV_MARGINAL_THRESHOLD) {
     return {
       status: 'marginal',
-      reason: `Growing conditions in this area vary significantly year to year (variability score: ${profile.gddBase5Cv}). Choose early-maturing varieties as a precaution.`,
+      reason: `Growing conditions in this area vary significantly year to year (variability score: ${cropGdd.cv}). Choose early-maturing varieties as a precaution.`,
     }
   }
 
   return { status: 'feasible', reason: null }
 }
 
-export function resolveAnnualCalendar(
-  profile: ClimateProfile,
-  method: CropMethodCalendarRecord,
-  crop: CropCalendarRecord,
+export function generateCalendarForCrop(
+    profile: ClimateProfile,
+    method: CropMethodCalendarRecord,
+    crop: CropCalendarRecord,
 ): MethodCalendar {
   const feasibility = assessFeasibility(profile, method, crop)
 
-  // Transplant date — start from conservative last frost, apply frost buffer
+  // ------------------------------------------------------------------
+  // Transplant date
+  // Start from the conservative last frost date and apply a frost buffer
+  // based on how much cold the crop can tolerate.
+  // ------------------------------------------------------------------
   const frostBuffer = frostToleranceBuffer(crop.frostTolerance)
   let transplantDoy = profile.lastFrostP90 + frostBuffer
 
-  // Push out further if crop needs warm nights
+  // Push later if the crop requires warm nights to survive outdoors.
   if (crop.minNightTempC !== null) {
     const warmMonth = firstMonthAboveNightTemp(profile.monthlyMeanTemps, crop.minNightTempC)
     if (warmMonth !== null) {
@@ -144,27 +164,27 @@ export function resolveAnnualCalendar(
     }
   }
 
-  // Indoor sow window — for transplantable crops
+  // ------------------------------------------------------------------
+  // Indoor sow window
+  // Driven by per-method weeks-before-transplant data. The window spans
+  // ±2 weeks around the target to give growers some flexibility.
+  // ------------------------------------------------------------------
   let sowIndoors: CalendarWindow | null = null
-  if (
-    (method.transplantTolerance === 'good' || method.transplantTolerance === 'poor') &&
-    method.daysToGerminationMax !== null &&
-    method.daysToMaturityMax !== null
-  ) {
-    const weeksIndoors = computeWeeksIndoors(profile, method)
-    // Always generate an indoor sow window for transplantable crops — even when
-    // the growing season is technically long enough, starting indoors gives a
-    // reliable head start and accounts for soil temperature constraints.
-    const sowDoyStart = transplantDoy - (weeksIndoors + 2) * 7
-    const sowDoyEnd   = transplantDoy - weeksIndoors * 7
+  if (method.weeksIndoorBeforeLastFrost !== null) {
+    const sowDoyStart = transplantDoy - (method.weeksIndoorBeforeLastFrost + 2) * 7
+    const sowDoyEnd   = transplantDoy - method.weeksIndoorBeforeLastFrost * 7
     sowIndoors = windowFromDoyRange(sowDoyStart, sowDoyEnd)
   }
 
-  // Direct sow window — for non-transplantable crops
+  // ------------------------------------------------------------------
+  // Direct sow window
+  // Only for crops that cannot be transplanted. Opens when soil is warm
+  // enough for germination.
+  // ------------------------------------------------------------------
   let directSow: CalendarWindow | null = null
   if (
-    (method.transplantTolerance === 'none' || method.transplantTolerance === 'direct-only') &&
-    method.germinationMinSoilTempC !== null
+      (method.transplantTolerance === 'none' || method.transplantTolerance === 'direct-only') &&
+      method.germinationMinSoilTempC !== null
   ) {
     const sowDoy = firstDayAboveSoilTemp(profile.monthlyMeanTemps, method.germinationMinSoilTempC)
     if (sowDoy !== null) {
@@ -172,26 +192,86 @@ export function resolveAnnualCalendar(
     }
   }
 
+  // ------------------------------------------------------------------
   // Transplant window
+  // ------------------------------------------------------------------
   let transplant: CalendarWindow | null = null
   if (method.transplantTolerance !== 'none' && method.transplantTolerance !== 'direct-only') {
     transplant = windowFromDoyRange(transplantDoy, transplantDoy + 14)
   }
 
+  // ------------------------------------------------------------------
   // Harvest window
-  const baseDoy = directSow !== null
-    ? doyFromWindow(directSow) + (method.daysToGerminationMax ?? 0)
-    : transplantDoy
+  //
+  // GDD accumulation begins at germination completion, not at transplant.
+  // This correctly models the head start gained by indoor propagation:
+  // a tomato seedling accumulates heat units from the moment it germinates,
+  // whether it is indoors or out.
+  //
+  // For transplanted crops:
+  //   - Accumulate GDD at INDOOR_PROPAGATOR_TEMP_C from germination until
+  //     transplant date, then switch to outdoor monthly mean temperatures.
+  //   - This reflects the biological reality that the plant is growing
+  //     throughout its indoor life, burning down the GDD budget before
+  //     it ever reaches the garden.
+  //
+  // For direct-sow crops:
+  //   - Accumulate GDD using outdoor temperatures throughout, starting
+  //     after germination completes.
+  // ------------------------------------------------------------------
+  let harvestStartDoy: number
+  let harvestEndDoy: number
 
-  const harvestStartDoy = baseDoy + (method.daysToMaturityMin ?? 60)
-  const harvestEndDoy   = Math.min(
-    baseDoy + (method.daysToMaturityMax ?? 90),
-    profile.firstFrostP10 - 14,
-  )
+  if (method.gddToMaturity !== null) {
+    if (sowIndoors !== null) {
+      // Transplanted crop: germination completes indoors, then growth
+      // continues at indoor temp until transplant, then switches to outdoor.
+      const germinationCompleteDoy =
+          doyFromWindow(sowIndoors) + (method.daysToGerminationMax ?? 14)
+
+      harvestStartDoy = gddAccumulatedByDoy(
+          profile.monthlyMeanTemps,
+          crop.gddBaseTempC,
+          germinationCompleteDoy,
+          method.gddToMaturity,
+          transplantDoy,
+          INDOOR_PROPAGATOR_TEMP_C,
+      )
+    } else if (directSow !== null) {
+      // Direct-sow crop: germination completes outdoors, accumulate from there.
+      const germinationCompleteDoy =
+          doyFromWindow(directSow) + (method.daysToGerminationMax ?? 14)
+
+      harvestStartDoy = gddAccumulatedByDoy(
+          profile.monthlyMeanTemps,
+          crop.gddBaseTempC,
+          germinationCompleteDoy,
+          method.gddToMaturity,
+      )
+    } else {
+      // Transplanted crop with no indoor sow window modelled (e.g. bought as
+      // a plug plant). Start accumulation from transplant date using outdoor temps.
+      harvestStartDoy = gddAccumulatedByDoy(
+          profile.monthlyMeanTemps,
+          crop.gddBaseTempC,
+          transplantDoy,
+          method.gddToMaturity,
+      )
+    }
+
+    harvestEndDoy = Math.min(
+        harvestStartDoy + 28,   // default 4-week picking window
+        profile.firstFrostP10 - 14,
+    )
+  } else {
+    // No GDD data available — harvest window cannot be computed.
+    harvestStartDoy = profile.firstFrostP10
+    harvestEndDoy   = profile.firstFrostP10 - 14
+  }
 
   const harvest: CalendarWindow | null = harvestStartDoy < harvestEndDoy
-    ? windowFromDoyRange(harvestStartDoy, harvestEndDoy)
-    : null
+      ? windowFromDoyRange(harvestStartDoy, harvestEndDoy)
+      : null
 
   return {
     methodId:          method.id,
@@ -206,15 +286,19 @@ export function resolveAnnualCalendar(
   }
 }
 
-export function resolveOverwinteredCalendar(
-  profile: ClimateProfile,
-  method: CropMethodCalendarRecord,
-  _crop: CropCalendarRecord,
+export function generateOverwinteredCalendarForCrop(
+    profile: ClimateProfile,
+    method: CropMethodCalendarRecord,
+    _crop: CropCalendarRecord,
 ): MethodCalendar {
-  // Plant in autumn before first frost
-  const plantDoy = profile.firstFrostDoy - (method.plantBeforeFirstFrostDays ?? 21)
+  // Plant in autumn before first frost. The 21-day offset is a standard
+  // agronomic rule for overwintered alliums and brassicas — the plant needs
+  // time to establish roots before the ground freezes, but must not send up
+  // shoots that will be winter-killed.
+  const plantDoy = profile.firstFrostDoy - 21
 
-  // Harvest the following summer
+  // Harvest the following summer, after the plant has vernalised through
+  // winter and resumed growth past the spring last-frost date.
   const harvestStartDoy = profile.lastFrostDoy + 60
   const harvestEndDoy   = profile.lastFrostDoy + 90
 
@@ -235,6 +319,59 @@ export function resolveOverwinteredCalendar(
 // Private helpers
 // ---------------------------------------------------------------------------
 
+// Returns the median, p10, and CV for the GDD accumulated above baseTempC
+// using the pre-computed seasonal totals from the nearest weather stations.
+function getGddForCrop(
+    profile: ClimateProfile,
+    baseTempC: number,
+): { median: number; p10: number; cv: number } {
+  switch (baseTempC) {
+    case 5:  return { median: profile.gddBase5,  p10: profile.gddBase5P10,  cv: profile.gddBase5Cv  }
+    case 7:  return { median: profile.gddBase7,  p10: profile.gddBase7P10,  cv: profile.gddBase7Cv  }
+    case 10: return { median: profile.gddBase10, p10: profile.gddBase10P10, cv: profile.gddBase10Cv }
+    case 15: return { median: profile.gddBase15, p10: profile.gddBase15P10, cv: profile.gddBase15Cv }
+    default: throw new Error(
+        `Unsupported GDD base temperature: ${baseTempC}°C. Must be one of 5, 7, 10, or 15.`,
+    )
+  }
+}
+
+// Walk forward day by day from fromDoy, accumulating daily GDD estimated from
+// monthly mean temperatures, until targetGdd is reached.
+//
+// When switchDoy and overrideTempC are provided, the override temperature is
+// used for all days before switchDoy (modelling indoor propagation), after
+// which outdoor monthly mean temperatures take over.
+//
+// Returns the DOY on which accumulated GDD first meets or exceeds targetGdd,
+// or 365 if the target is never reached within the calendar year.
+function gddAccumulatedByDoy(
+    monthlyMeanTemps: number[],
+    baseTempC: number,
+    fromDoy: number,
+    targetGdd: number,
+    switchDoy?: number,
+    overrideTempC?: number,
+): number {
+  let accumulated = 0
+
+  for (let doy = fromDoy; doy <= 365; doy++) {
+    const useIndoorTemp = overrideTempC !== undefined
+        && switchDoy !== undefined
+        && doy < switchDoy
+
+    const meanTemp = useIndoorTemp
+        ? overrideTempC
+        : monthlyMeanTemps[doyToMonth(doy)]
+
+    accumulated += Math.max(0, meanTemp - baseTempC)
+
+    if (accumulated >= targetGdd) { return doy }
+  }
+
+  return 365
+}
+
 function frostToleranceBuffer(tolerance: string): number {
   switch (tolerance) {
     case 'hard':  return -14
@@ -244,19 +381,29 @@ function frostToleranceBuffer(tolerance: string): number {
   }
 }
 
+// First DOY of each month in a standard 365-day year.
 const MONTH_DOY_STARTS = [1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]
 
 function monthToDoyStart(month: number): number {
   return MONTH_DOY_STARTS[month]
 }
 
+function doyToMonth(doy: number): number {
+  for (let m = 11; m >= 0; m--) {
+    if (doy >= MONTH_DOY_STARTS[m]) { return m }
+  }
+  return 0
+}
+
 function estimateSoilTemp(monthlyMeanTemp: number): number {
+  // Soil temperature lags air temperature slightly and moderates extremes.
+  // +1.5°C is a reasonable approximation for topsoil in spring.
   return monthlyMeanTemp + 1.5
 }
 
 function firstDayAboveSoilTemp(
-  monthlyMeanTemps: number[],
-  minSoilTempC: number,
+    monthlyMeanTemps: number[],
+    minSoilTempC: number,
 ): number | null {
   for (let month = 0; month < 12; month++) {
     if (estimateSoilTemp(monthlyMeanTemps[month]) >= minSoilTempC) {
@@ -264,13 +411,6 @@ function firstDayAboveSoilTemp(
     }
   }
   return null
-}
-
-function computeWeeksIndoors(profile: ClimateProfile, method: CropMethodCalendarRecord): number {
-  const totalDaysNeeded = (method.daysToGerminationMax ?? 0) + (method.daysToMaturityMax ?? 0)
-  const deficit = totalDaysNeeded - profile.growingDays
-  if (deficit <= 0) {return 0}
-  return Math.ceil(deficit / 7) + 2
 }
 
 function windowFromDoyRange(startDoy: number, endDoy: number): CalendarWindow {
@@ -288,7 +428,10 @@ function doyFromWindow(window: CalendarWindow): number {
   return monthToDoyStart(window.startMonth - 1)
 }
 
-function unsupportedLifecycle(method: CropMethodCalendarRecord, crop: CropCalendarRecord): MethodCalendar {
+function unsupportedLifecycle(
+    method: CropMethodCalendarRecord,
+    crop: CropCalendarRecord,
+): MethodCalendar {
   return {
     methodId:          method.id,
     methodLabelSv:     method.labelSv,
